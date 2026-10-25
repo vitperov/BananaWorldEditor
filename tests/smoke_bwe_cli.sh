@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 #
 # Smoke test for bwe_cli.py - exercises every command against throwaway maps and
 # asserts on counts, geometry and diff cleanliness. Self-contained: builds all

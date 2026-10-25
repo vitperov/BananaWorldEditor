@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QLabel, QMenu, QShortcut

@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 from modules.commonModels.SelectionRange import *
 from PyQt5 import QtWidgets, QtGui
 from pyqtgraph.Qt import QtCore

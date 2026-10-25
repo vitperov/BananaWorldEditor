@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 import sys
 from functools import partial
 import datetime

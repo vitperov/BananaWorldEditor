@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 import numpy

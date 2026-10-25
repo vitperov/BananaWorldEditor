@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 import os
 
 from PyQt5.QtWidgets import QFileDialog

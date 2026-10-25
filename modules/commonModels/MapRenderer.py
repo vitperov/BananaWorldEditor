@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 """Render a map model as an ASCII grid.
 
 Read-only view over a MapModelGeneral: turns the squares into one glyph per

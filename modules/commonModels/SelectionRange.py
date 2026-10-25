@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 
 class SelectionRange:
     def __init__(self, startCol, startRow, endCol, endRow, zLevel):

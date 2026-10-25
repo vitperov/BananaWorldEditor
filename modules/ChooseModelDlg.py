@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QLabel, QGridLayout, QTabWidget, QWidget, QSpacerItem, QSizePolicy
 from PyQt5 import QtGui, QtCore
 from PyQt5.QtCore import QSize

@@ -1,4 +1,6 @@
 #!/usr/bin/env python3
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 """bwe_cli - headless CLI for BananaWorldEditor.
 
 Drives the same model / helper / generator layer used by the GUI editor, so

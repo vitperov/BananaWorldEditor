@@ -1,3 +1,5 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
 from PyQt5.QtWidgets import QDialog, QVBoxLayout, QPushButton, QHBoxLayout
 from functools import partial
 from modules.SimpleSquareItem import SimpleSquareItem
