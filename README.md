@@ -1,8 +1,19 @@
-# TtMapEditor
-Map editor for Unity 2.5D game
+# BananaWorldEditor
+Universal map editor for 3D games.
+
+- **Terrain editor** — visual grid editing for outdoor maps
+- **House editor** — walls, roofs, furniture, interiors
+- **Headless CLI** (`bwe_cli.py`) — same model layer as the GUI, for
+  scripts and AI harnesses
+
+AI can generate more and more game content, but level design stays a
+human's responsibility. In a masterpiece — as opposed to neuroslop — the
+level designer is the main person, and they need at least visualization
+and convenient instruments.
 
 # Status
-Only house editor is implemented.
+Both editors (terrain and house) are implemented, plus the headless CLI
+driving the same model layer.
 
 Warning: Project is not finished. Interfaces and file format can be changed in the future.
 
@@ -11,7 +22,7 @@ Warning: Project is not finished. Interfaces and file format can be changed in t
 
 ## Installation
 
-To install and use **TtMapEditor**, follow these steps:
+To install and use **BananaWorldEditor**, follow these steps:
 
 1. Clone the repository:
 
@@ -47,5 +58,9 @@ Leave either one empty to fall back to the editor-local `output/terrain` and
 its path is shown in the title bar with a `*` when there are unsaved edits, and
 **Save** (`Ctrl+S`) writes straight back to that file — use **Save As**
 (`Ctrl+Shift+S`) to write somewhere else.
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2022-2026 Vitaly Perov.
 
 
