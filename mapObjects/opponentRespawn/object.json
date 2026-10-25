@@ -29,6 +29,10 @@
         {
             "type": "string",
             "name": "onDeathEvent"
+        },
+        {
+            "type": "bool",
+            "name": "spawnSleeping"
         }
     ]
 }
