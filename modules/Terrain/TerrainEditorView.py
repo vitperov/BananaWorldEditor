@@ -15,7 +15,7 @@ class TerrainEditorView(QWidget):
     """Terrain Editor View Widget."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('TT Map Generator')
+        self.setWindowTitle('BananaWorldEditor — Map Generator')
 
         self._createWidgets()
 

@@ -2,7 +2,7 @@
 
 Read-only view over a MapModelGeneral: turns the squares into one glyph per
 cell (with a legend) so a map can be *seen* rather than read as a list of
-records. Used by the ttmap CLI's `render` command; returns pure data
+records. Used by the bwe_cli CLI's `render` command; returns pure data
 (rows + legend) so any front-end can format it.
 """
 

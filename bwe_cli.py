@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""ttmap - headless CLI for the TrappedTogether map editor.
+"""bwe_cli - headless CLI for BananaWorldEditor.
 
 Drives the same model / helper / generator layer used by the GUI editor, so
-maps can be inspected and edited from scripts (or by an LLM via the tt-maps
-skill) without opening the Qt interface.
+maps can be inspected and edited from scripts (or by an LLM harness)
+without opening the Qt interface.
 
 Invocation (from the Unity project root, via the symlink):
-    python3 Assets/TtMapsEditor/ttmap.py <command> [options]
+    python3 Assets/TtMapsEditor/bwe_cli.py <command> [options]
 
 Commands are split into read-only queries (list-objects, list-generators,
 describe, dump) and one-op-per-call mutating edits (added in a later step).
@@ -602,8 +602,8 @@ def _coord(value):
 
 def build_parser():
     parser = argparse.ArgumentParser(
-        prog="ttmap",
-        description="Headless CLI for the TrappedTogether map editor.")
+        prog="bwe_cli",
+        description="Headless CLI for BananaWorldEditor.")
     sub = parser.add_subparsers(dest="command", required=True)
 
     jsonparent = argparse.ArgumentParser(add_help=False)

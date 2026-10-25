@@ -14,7 +14,7 @@ class HouseView(QWidget):
     """House Editor View Widget."""
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('TT House editor')
+        self.setWindowTitle('BananaWorldEditor — House Editor')
 
         self._createWidgets()
 

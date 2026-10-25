@@ -140,7 +140,7 @@ class MapModelGeneral(QObject):
 
     # addRow / addColumn / deleteRow / deleteColumn are thin adapters over the
     # insertLine / removeLine engine below (single line, empty fill), so the
-    # GUI toolbar and the ttmap CLI share one implementation.
+    # GUI toolbar and the bwe_cli CLI share one implementation.
     def addRow(self, before=None):
         self.insertLine('row', self.height if before is None else before, count=1)
 
@@ -320,7 +320,7 @@ class MapModelGeneral(QObject):
 
     # ----------------------------------------------------------------------- #
     # Edit engine: position-preserving fill, resize (insert/remove) and move.
-    # These are the map operations the ttmap CLI used to implement inline; they
+    # These are the map operations the bwe_cli CLI used to implement inline; they
     # live here so the GUI and the CLI share one implementation and callers stop
     # reaching into _squares. Each ends with a single _updateCallback so the GUI
     # refreshes once (the CLI's callback is a no-op).

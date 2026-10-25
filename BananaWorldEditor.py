@@ -19,7 +19,7 @@ from modules.ApplicationSettings.ApplicationSettingsDlg import ApplicationSettin
 from modules.ApplicationSettings.ApplicationSettingsModel import ApplicationSettingsModel
 
 class TtMapEditor(QMainWindow):
-    BASE_TITLE = "TT Map Editor"
+    BASE_TITLE = "BananaWorldEditor"
 
     def __init__(self):
         super().__init__()

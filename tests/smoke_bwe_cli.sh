@@ -1,18 +1,18 @@
 #!/usr/bin/env bash
 #
-# Smoke test for ttmap.py - exercises every command against throwaway maps and
+# Smoke test for bwe_cli.py - exercises every command against throwaway maps and
 # asserts on counts, geometry and diff cleanliness. Self-contained: builds all
 # its own maps (no dependency on the Unity project) and overrides generator
 # settings via --set so results do not depend on generatorsSettings.json.
 #
-# Usage:  ./tests/smoke_ttmap.sh
+# Usage:  ./tests/smoke_bwe_cli.sh
 # Exit code 0 = all passed, 1 = at least one failure.
 
 set -u
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 EDITOR_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-TTMAP="$EDITOR_ROOT/ttmap.py"
+BWE_CLI="$EDITOR_ROOT/bwe_cli.py"
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -22,25 +22,25 @@ fail=0
 
 # --- helpers --------------------------------------------------------------- #
 
-tt() { python3 "$TTMAP" "$@" >/dev/null 2>&1; }   # run a mutating command quietly
+tt() { python3 "$BWE_CLI" "$@" >/dev/null 2>&1; }   # run a mutating command quietly
 
 count() {   # count <map> <model> [z]   -> number of that model at z-level (default 0)
-  python3 "$TTMAP" describe "$1" --json 2>/dev/null | \
+  python3 "$BWE_CLI" describe "$1" --json 2>/dev/null | \
     python3 -c "import sys,json;d=json.load(sys.stdin);print(d['counts'].get('${3:-0}',{}).get('$2',0))"
 }
 
 field() {   # field <map> <key>   -> top-level describe field (width/height/basePrefab)
-  python3 "$TTMAP" describe "$1" --json 2>/dev/null | \
+  python3 "$BWE_CLI" describe "$1" --json 2>/dev/null | \
     python3 -c "import sys,json;print(json.load(sys.stdin)['$2'])"
 }
 
 rot_count() {   # rot_count <map> "x y w h" <rotation>   -> squares in rect with that rotation
-  python3 "$TTMAP" dump "$1" --rect "$2" --json 2>/dev/null | \
+  python3 "$BWE_CLI" dump "$1" --rect "$2" --json 2>/dev/null | \
     python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if s.get('rotation')=='$3'))"
 }
 
 squares_at() {   # squares_at <map> "x y w h"   -> number of squares in rect (all layers)
-  python3 "$TTMAP" dump "$1" --rect "$2" --json 2>/dev/null | \
+  python3 "$BWE_CLI" dump "$1" --rect "$2" --json 2>/dev/null | \
     python3 -c "import sys,json;print(len(json.load(sys.stdin)))"
 }
 
@@ -60,7 +60,7 @@ assert_le() {   # assert_le <actual> <max> <msg>
 }
 
 # --------------------------------------------------------------------------- #
-echo "ttmap smoke test  (workdir: $WORK)"
+echo "bwe_cli smoke test  (workdir: $WORK)"
 echo "editor root:      $EDITOR_ROOT"
 
 echo ""
@@ -97,7 +97,7 @@ tt new "$DP" --size 6 6 --base-prefab House
 tt fill "$DP" --rect "0 0 6 6" --model Floor
 tt setprop "$DP" --rect "0 0 6 6" --model Floor --prop internalTexture=floorWood1 --prop lootContainer=box
 prop_count() {   # prop_count <map> <model> <propKey>  -> squares of model carrying that additionalProperty
-  python3 "$TTMAP" dump "$1" --model "$2" --json 2>/dev/null | \
+  python3 "$BWE_CLI" dump "$1" --model "$2" --json 2>/dev/null | \
     python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if '$3' in s.get('additionalProperties',{})))"
 }
 assert_eq "$(prop_count "$DP" Floor internalTexture)" "36" "delprop setup: 36 Floor carry internalTexture"
@@ -108,7 +108,7 @@ assert_eq "$(prop_count "$DP" Floor lootContainer)" "36"   "delprop --prop: loot
 # --all clears the rest; on save the additionalProperties key is omitted entirely
 tt delprop "$DP" --rect "0 0 6 6" --model Floor --all
 assert_eq "$(prop_count "$DP" Floor lootContainer)" "0" "delprop --all: every additionalProperty gone"
-naked=$(python3 "$TTMAP" dump "$DP" --model Floor --json 2>/dev/null | \
+naked=$(python3 "$BWE_CLI" dump "$DP" --model Floor --json 2>/dev/null | \
   python3 -c "import sys,json;print(sum('additionalProperties' in s for s in json.load(sys.stdin)))")
 assert_eq "$naked" "0" "delprop --all: additionalProperties key omitted on save"
 # base props cannot be deleted (exit non-zero, model unchanged)
@@ -214,18 +214,18 @@ tt move "$MV" --from "2 2" --to "10 10" --model house1 --fill-old Grass --clear-
 assert_eq "$(count "$MV" house1)" "1" "move: house not duplicated"
 assert_eq "$(squares_at "$MV" "10 10 1 1")" "1" "move: house sits at destination origin"
 assert_eq "$(squares_at "$MV" "2 2 1 1")" "1" "move: origin cell holds one layer (grass)"
-gold=$(python3 "$TTMAP" dump "$MV" --rect "2 2 6 6" --json 2>/dev/null | \
+gold=$(python3 "$BWE_CLI" dump "$MV" --rect "2 2 6 6" --json 2>/dev/null | \
   python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if s['model']=='Grass'))")
 assert_eq "$gold" "36" "move --fill-old: origin 6x6 backfilled with Grass"
-gnew=$(python3 "$TTMAP" dump "$MV" --rect "10 10 6 6" --json 2>/dev/null | \
+gnew=$(python3 "$BWE_CLI" dump "$MV" --rect "10 10 6 6" --json 2>/dev/null | \
   python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if s['model']=='Grass'))")
 assert_eq "$gnew" "0" "move --clear-new: destination 6x6 cleared of Grass"
 # overlapping move (shift by 1) leaves no Grass under the house, backfills only the vacated column
 tt move "$MV" --from "10 10" --to "11 10" --model house1 --fill-old Grass --clear-new
-gover=$(python3 "$TTMAP" dump "$MV" --rect "11 10 6 6" --json 2>/dev/null | \
+gover=$(python3 "$BWE_CLI" dump "$MV" --rect "11 10 6 6" --json 2>/dev/null | \
   python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if s['model']=='Grass'))")
 assert_eq "$gover" "0" "move overlap: no Grass under shifted house"
-gcol=$(python3 "$TTMAP" dump "$MV" --rect "10 10 1 6" --json 2>/dev/null | \
+gcol=$(python3 "$BWE_CLI" dump "$MV" --rect "10 10 1 6" --json 2>/dev/null | \
   python3 -c "import sys,json;print(sum(1 for s in json.load(sys.stdin) if s['model']=='Grass'))")
 assert_eq "$gcol" "6" "move overlap: vacated column backfilled with Grass"
 
@@ -236,20 +236,20 @@ tt new "$Q" --size 8 6
 tt fill "$Q" --rect "0 0 8 6" --model Grass
 tt border "$Q" --rect "0 0 8 6" --model Forest --width 1
 # --model filters dump to just that type (JSON count unaffected by the text footer)
-qf=$(python3 "$TTMAP" dump "$Q" --model Forest --json 2>/dev/null | \
+qf=$(python3 "$BWE_CLI" dump "$Q" --model Forest --json 2>/dev/null | \
   python3 -c "import sys,json;print(len(json.load(sys.stdin)))")
 assert_eq "$qf" "24" "dump --model: finds all 24 Forest squares (perimeter of 8x6)"
-qmix=$(python3 "$TTMAP" dump "$Q" --model Grass --json 2>/dev/null | \
+qmix=$(python3 "$BWE_CLI" dump "$Q" --model Grass --json 2>/dev/null | \
   python3 -c "import sys,json;print(len(json.load(sys.stdin)))")
 assert_eq "$qmix" "24" "dump --model: finds the 24 interior Grass squares"
 # render: JSON grid is height rows wide by width, legend covers the models present
-rrows=$(python3 "$TTMAP" render "$Q" --json 2>/dev/null | \
+rrows=$(python3 "$BWE_CLI" render "$Q" --json 2>/dev/null | \
   python3 -c "import sys,json;print(len(json.load(sys.stdin)['rows']))")
 assert_eq "$rrows" "6" "render: one row per map row (height)"
-rw=$(python3 "$TTMAP" render "$Q" --json 2>/dev/null | \
+rw=$(python3 "$BWE_CLI" render "$Q" --json 2>/dev/null | \
   python3 -c "import sys,json;print(len(json.load(sys.stdin)['rows'][0]))")
 assert_eq "$rw" "8" "render: each row is width chars wide"
-rleg=$(python3 "$TTMAP" render "$Q" --json 2>/dev/null | \
+rleg=$(python3 "$BWE_CLI" render "$Q" --json 2>/dev/null | \
   python3 -c "import sys,json;print(len(json.load(sys.stdin)['legend']))")
 assert_eq "$rleg" "2" "render: legend lists the 2 models present (Grass, Forest)"
 # a placed structure draws over the floor it sits on (object tier > ground tier)
@@ -257,7 +257,7 @@ R="$WORK/r.json"
 tt new "$R" --size 6 6 --base-prefab House
 tt fill "$R" --rect "0 0 6 6" --model Floor
 tt place "$R" --at 2 2 --model Wall
-wall_glyph=$(python3 "$TTMAP" render "$R" --json 2>/dev/null | \
+wall_glyph=$(python3 "$BWE_CLI" render "$R" --json 2>/dev/null | \
   python3 -c "import sys,json;d=json.load(sys.stdin);print(d['rows'][2][2])")
 assert_eq "$wall_glyph" "W" "render: Wall (object tier) shown over Floor (ground tier)"
 
@@ -269,7 +269,7 @@ tt fill "$RT" --rect "0 0 16 16" --model Grass
 # shopSmall is 4x7; rotated 90 it occupies 7 wide x 4 tall on the grid.
 tt place "$RT" --at 4 4 --model shopSmall --rotation 90
 # render: the shop glyph's bounding box must be 7 wide x 4 tall (not the raw 4x7).
-read shw shh < <(python3 "$TTMAP" render "$RT" --z 0 --json 2>/dev/null | python3 -c "
+read shw shh < <(python3 "$BWE_CLI" render "$RT" --z 0 --json 2>/dev/null | python3 -c "
 import sys,json
 d=json.load(sys.stdin)
 cells=[(x,y) for y,row in enumerate(d['rows']) for x,ch in enumerate(row) if ch in ('S','s')]
@@ -278,10 +278,10 @@ print(max(xs)-min(xs)+1, max(ys)-min(ys)+1)")
 assert_eq "$shw" "7" "render: rotated 4x7 shop draws 7 cells wide"
 assert_eq "$shh" "4" "render: rotated 4x7 shop draws 4 cells tall"
 # dump text shows the rotation-aware wxh (7x4), not the raw stored 4x7.
-dwxh=$(python3 "$TTMAP" dump "$RT" --model shopSmall 2>/dev/null | grep -oE 'wxh=[0-9]+x[0-9]+' | head -1)
+dwxh=$(python3 "$BWE_CLI" dump "$RT" --model shopSmall 2>/dev/null | grep -oE 'wxh=[0-9]+x[0-9]+' | head -1)
 assert_eq "$dwxh" "wxh=7x4" "dump: text footprint is rotation-aware (7x4)"
 # move bounds check uses the 7-wide footprint: to x=10 (10+7=17 > 16) is rejected.
-if python3 "$TTMAP" move "$RT" --from "4 4" --to "10 4" --model shopSmall >/dev/null 2>&1; then
+if python3 "$BWE_CLI" move "$RT" --from "4 4" --to "10 4" --model shopSmall >/dev/null 2>&1; then
   moved_ok=yes; else moved_ok=no; fi
 assert_eq "$moved_ok" "no" "move: rotated footprint bounds check rejects overflow"
 
@@ -347,10 +347,10 @@ cp "$P" "$WORK/p_before.json"
 tt setprop "$P" --rect "1 1 1 1" --model opponentRespawn --prop spawnSleeping=false
 assert_eq "$(diff_lines "$P" "$WORK/p_before.json")" "0" "typed props round-trip clean (no-op is zero-diff)"
 # bad bool / bad int are rejected with a nonzero exit
-if python3 "$TTMAP" place "$P" --at 0 0 --model opponentRespawn --prop spawnSleeping=maybe >/dev/null 2>&1; then
+if python3 "$BWE_CLI" place "$P" --at 0 0 --model opponentRespawn --prop spawnSleeping=maybe >/dev/null 2>&1; then
   bad_bool=ok; else bad_bool=rejected; fi
 assert_eq "$bad_bool" "rejected" "place: non-boolean value for a bool prop is rejected"
-if python3 "$TTMAP" place "$P" --at 0 0 --model nextLevel --prop levelId=xyz >/dev/null 2>&1; then
+if python3 "$BWE_CLI" place "$P" --at 0 0 --model nextLevel --prop levelId=xyz >/dev/null 2>&1; then
   bad_int=ok; else bad_int=rejected; fi
 assert_eq "$bad_int" "rejected" "place: non-integer value for an int prop is rejected"
 
