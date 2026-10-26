@@ -22,20 +22,50 @@ Warning: Project is not finished. Interfaces and file format can be changed in t
 
 ## Installation
 
+The editor is installed and run with [uv](https://docs.astral.sh/uv/) —
+uv replaces pip, and `requirements.txt` no longer exists: dependencies are
+declared in `pyproject.toml` and pinned in `uv.lock`.
+
 To install and use **BananaWorldEditor**, follow these steps:
 
-1. Clone the repository:
+1. Install uv with the official installer:
+
+    ```bash
+    curl -LsSf https://astral.sh/uv/install.sh | sh
+    ```
+
+2. Clone the repository:
 
     ```bash
     git clone https://github.com/vitperov/BananaWorldEditor.git
     cd BananaWorldEditor
     ```
 
-2. Install the required dependencies:
+3. Create the environment and install the dependencies:
 
     ```bash
-    pip install -r requirements.txt
+    uv sync
     ```
+
+4. Run from the editor root — the editor:
+
+    ```bash
+    uv run BananaWorldEditor.py
+    ```
+
+    and the headless CLI:
+
+    ```bash
+    uv run bwe_cli.py <command>
+    ```
+
+The CLI can also be run from a different working directory (map-file
+arguments still resolve against your current directory) — point uv at the
+project and give the path to the script:
+
+```bash
+uv run --project <path-to-BananaWorldEditor> <path-to-BananaWorldEditor>/bwe_cli.py <command>
+```
 
 ## Where maps are stored
 
