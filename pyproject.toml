@@ -1,0 +1,15 @@
+# SPDX-License-Identifier: MIT
+# Copyright (c) 2022-2026 Vitaly Perov
+
+[project]
+name = "bananaworldeditor"
+version = "0.1.0"
+requires-python = ">=3.10"
+license = "MIT"
+dependencies = [
+    "PyQt5",
+    "pyqtgraph",
+]
+
+[tool.uv]
+package = false
