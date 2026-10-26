@@ -27,8 +27,8 @@ To install and use **BananaWorldEditor**, follow these steps:
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/vitperov/TtMapEditor.git
-    cd TtMapEditor
+    git clone https://github.com/vitperov/BananaWorldEditor.git
+    cd BananaWorldEditor
     ```
 
 2. Install the required dependencies:
