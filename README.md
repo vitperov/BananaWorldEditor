@@ -19,6 +19,7 @@ Warning: Project is not finished. Interfaces and file format can be changed in t
 
 # Map example
 ![Example](doc/houseExample.jpg)
+![Terrain example](doc/terrainExample.jpg)
 
 ## Installation
 
