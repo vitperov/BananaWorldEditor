@@ -68,28 +68,6 @@ project and give the path to the script:
 uv run --project <path-to-BananaWorldEditor> <path-to-BananaWorldEditor>/bwe_cli.py <command>
 ```
 
-## Where maps are stored
-
-The editor opens and saves maps directly in the game project, so there is no
-copying step. Set the two directories once under **Settings**:
-
-| Setting | Points at | Used by |
-| --- | --- | --- |
-| Terrain Maps Directory | `<game>/Assets/Resources/Maps/Terrain` | Terrain editor |
-| House Maps Directory | `<game>/Assets/Resources/Maps/House/json` | House editor |
-
-They are independent because the two folders are unrelated in the game project;
-neither is derived from the other. Both are stored in `settings/application.json`,
-which is local to your machine and not committed.
-
-Leave either one empty to fall back to the editor-local `output/terrain` and
-`output/house` scratch folders, which is what you get without a game checkout.
-
-**Open/Save** use these directories as their starting point. Once a map is open,
-its path is shown in the title bar with a `*` when there are unsaved edits, and
-**Save** (`Ctrl+S`) writes straight back to that file — use **Save As**
-(`Ctrl+Shift+S`) to write somewhere else.
-
 ## License
 
 MIT — see [LICENSE](LICENSE). Copyright (c) 2022-2026 Vitaly Perov.
