@@ -11,6 +11,8 @@ human's responsibility. In a masterpiece — as opposed to neuroslop — the
 level designer is the main person, and they need at least visualization
 and convenient instruments.
 
+Future plans: see [ROADMAP.md](ROADMAP.md).
+
 # Status
 Both editors (terrain and house) are implemented, plus the headless CLI
 driving the same model layer.
