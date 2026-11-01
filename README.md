@@ -18,8 +18,8 @@ driving the same model layer.
 Warning: Project is not finished. Interfaces and file format can be changed in the future.
 
 # Map example
-![Example](doc/houseExample.jpg)
-![Terrain example](doc/terrainExample.jpg)
+![House editor](doc/houseExample.jpg)
+![House map rendered in Unity](doc/houseExampleUnity.png)
 
 ## Installation
 
