@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2022-2026 Vitaly Perov
-from PyQt5 import QtWidgets
 from PyQt5.QtCore import pyqtSignal, QSize
 from PyQt5.QtWidgets import QWidget, QHBoxLayout, QPushButton, QComboBox, QDoubleSpinBox, QLabel, QMenu, QShortcut
 from PyQt5.QtGui import QIcon, QKeySequence
@@ -8,6 +7,7 @@ from functools import partial
 
 from modules.ApplicationSettings.ApplicationSettingsModel import ApplicationSettingsModel
 from modules.commonModels.MapFileDialogs import MapFileDialogs
+from modules.commonModels.ThemeIcons import themedIcon, NEW_FALLBACK, OPEN_FALLBACK, SAVE_FALLBACK, SAVE_AS_FALLBACK
 
 class HouseToolbar(QWidget):
     newMap = pyqtSignal(int, int)
@@ -35,19 +35,19 @@ class HouseToolbar(QWidget):
 
         # Create main toolbar buttons with standard icons
         self._newBtn = QPushButton()
-        self._newBtn.setIcon(QIcon.fromTheme("document-new"))
+        self._newBtn.setIcon(themedIcon(self, "document-new", NEW_FALLBACK))
         self._newBtn.setIconSize(self.ICON_SIZE)
 
         self._openBtn = QPushButton()
-        self._openBtn.setIcon(QIcon.fromTheme("document-open"))
+        self._openBtn.setIcon(themedIcon(self, "document-open", OPEN_FALLBACK))
         self._openBtn.setIconSize(self.ICON_SIZE)
 
         self._saveBtn = QPushButton()
-        self._saveBtn.setIcon(QIcon.fromTheme("document-save"))
+        self._saveBtn.setIcon(themedIcon(self, "document-save", SAVE_FALLBACK))
         self._saveBtn.setIconSize(self.ICON_SIZE)
 
         self._saveAsBtn = QPushButton()
-        self._saveAsBtn.setIcon(QIcon.fromTheme("document-save-as"))
+        self._saveAsBtn.setIcon(themedIcon(self, "document-save-as", SAVE_AS_FALLBACK))
         self._saveAsBtn.setIconSize(self.ICON_SIZE)
 
         # Create additional toolbar buttons with icons

@@ -6,6 +6,7 @@ from PyQt5.QtGui import QIcon, QKeySequence
 
 from modules.ApplicationSettings.ApplicationSettingsModel import ApplicationSettingsModel
 from modules.commonModels.MapFileDialogs import MapFileDialogs
+from modules.commonModels.ThemeIcons import themedIcon, OPEN_FALLBACK, SAVE_FALLBACK, SAVE_AS_FALLBACK, REFRESH_FALLBACK
 
 class TerrainToolbar(QWidget):
     mapSettings  = pyqtSignal()
@@ -29,10 +30,10 @@ class TerrainToolbar(QWidget):
         self._saveAsBtn     = QPushButton("Save As")
         self._refreshButton = QPushButton("Refresh", self)
 
-        self._openBtn.setIcon(QIcon.fromTheme("document-open"))
-        self._saveBtn.setIcon(QIcon.fromTheme("document-save"))
-        self._saveAsBtn.setIcon(QIcon.fromTheme("document-save-as"))
-        self._refreshButton.setIcon(QIcon.fromTheme("view-refresh"))
+        self._openBtn.setIcon(themedIcon(self, "document-open", OPEN_FALLBACK))
+        self._saveBtn.setIcon(themedIcon(self, "document-save", SAVE_FALLBACK))
+        self._saveAsBtn.setIcon(themedIcon(self, "document-save-as", SAVE_AS_FALLBACK))
+        self._refreshButton.setIcon(themedIcon(self, "view-refresh", REFRESH_FALLBACK))
 
         self._layout.addWidget(self._settingsBtn)
         self._layout.addWidget(self._openBtn)

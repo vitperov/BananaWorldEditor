@@ -4,6 +4,8 @@ from PyQt5 import QtWidgets
 from pyqtgraph.Qt import QtCore, QtGui
 from PyQt5.QtCore import *
 from PyQt5.QtWidgets import *
+
+from modules.commonModels.ThemeIcons import themedIcon
 from PyQt5.QtCore import pyqtSignal, pyqtSlot
 
 from functools import partial
@@ -87,7 +89,7 @@ class GeneratorItem(QGroupBox):
         self.toggleButton = QToolButton()
         self.toggleButton.setCheckable(True)
         self.toggleButton.setChecked(False)
-        self.toggleButton.setIcon(QtGui.QIcon.fromTheme("list-add"))  # Initially showing the minus icon
+        self._setToggleIcon(False)
         self.toggleButton.clicked.connect(self.toggleSettings)
 
         firstRowLayout.addWidget(self.toggleButton)
@@ -105,13 +107,20 @@ class GeneratorItem(QGroupBox):
         layout.addWidget(self.settingsWg)
         self.settingsWg.hide()
 
+    # Theme icons depend on a freedesktop icon theme; on bare systems fall
+    # back to Qt's built-in arrows so the expand/collapse state still reads.
+    def _setToggleIcon(self, expanded):
+        themeName = "list-remove" if expanded else "list-add"
+        fallback = QStyle.SP_ArrowUp if expanded else QStyle.SP_ArrowDown
+        self.toggleButton.setIcon(themedIcon(self, themeName, fallback))
+
     def toggleSettings(self):
         if self.toggleButton.isChecked():
             self.settingsWg.show()
-            self.toggleButton.setIcon(QtGui.QIcon.fromTheme("list-remove"))  # Show minus icon when expanded
+            self._setToggleIcon(True)  # Show minus icon when expanded
         else:
             self.settingsWg.hide()
-            self.toggleButton.setIcon(QtGui.QIcon.fromTheme("list-add"))  # Show plus icon when collapsed
+            self._setToggleIcon(False)  # Show plus icon when collapsed
 
 class GeneratorsPanel(QWidget):
     generateSignal = pyqtSignal(str, dict)
