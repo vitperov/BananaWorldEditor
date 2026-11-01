@@ -6,18 +6,42 @@ Universal map editor for 3D games.
 - **Headless CLI** (`bwe_cli.py`) — same model layer as the GUI, for
   scripts and AI harnesses
 
-AI can generate more and more game content, but level design stays a
-human's responsibility. In a masterpiece — as opposed to neuroslop — the
-level designer is the main person, and they need at least visualization
-and convenient instruments.
+## Story
 
-Future plans: see [ROADMAP.md](ROADMAP.md).
+A friend and I once set out to build a 3D game. We opened Unity, and for
+the first three days we were amazed at how simple it was and how limitless
+the possibilities seemed.
+
+Then we started building the game itself: each of us was to model a few
+old wooden houses in Blender. It looked easy — 15 minutes per house. But
+after two days on a single house that was still half-finished, I suddenly
+realized how much work it really was. With only 1–2 hours after work for
+such a hobby, we would not finish our game even in years.
+
+This is a typical beginner's mistake — one that has drained the enthusiasm
+of many would-be game makers and killed a lot of outstanding projects.
+
+So I decided to make a tool that lets me build maps easily from ready-made
+blocks — a 2D editor for a 3D world, since 3D positioning eats up too
+much time too.
+
+## Features
+
+- **Plugin system** — plugins automatically generate terrain, randomly
+  arrange trees, and more. They automate the routine work that takes most
+  of the time.
+- **External objects support** — connect a directory with your game's
+  private objects and textures, keeping them separate from the editor's
+  built-in content.
+- **Floor-by-floor editing** — a 2D house is edited one floor at a time.
 
 # Status
 Both editors (terrain and house) are implemented, plus the headless CLI
 driving the same model layer.
 
 Warning: Project is not finished. Interfaces and file format can be changed in the future.
+
+Future plans: see [ROADMAP.md](ROADMAP.md).
 
 # Map example
 ![House editor](doc/houseExample.jpg)
