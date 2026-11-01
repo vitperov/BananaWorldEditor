@@ -103,12 +103,18 @@ class MapWidget(QWidget):
             rows = rows + 1
             cols = cols + 1
 
-        maxWidth = 1400
-        maxHeight = 900
+        # Fit into the space the layout actually gives this widget; hardcoded
+        # window-size maxima produced a pixmap larger than the visible label
+        # (window minus toolbar and properties panel) and clipped the map.
+        margins = self._layout.contentsMargins()
+        maxWidth = max(self.width() - margins.left() - margins.right(), 640)
+        maxHeight = max(self.height() - margins.top() - margins.bottom(), 480)
 
         wPixPerSquare = math.floor(maxWidth / cols)
         hPixPerSquare = math.floor(maxHeight / rows)
-        self.pixPerTile = min(wPixPerSquare, hPixPerSquare)
+        # Never zero: a huge map on a small viewport would still need a
+        # drawable (if clipped) canvas.
+        self.pixPerTile = max(4, min(wPixPerSquare, hPixPerSquare))
 
         print("---> SIZE = " + str(cols*self.pixPerTile) + " x " +  str(rows*self.pixPerTile) + "; px= " + str(self.pixPerTile))
 
