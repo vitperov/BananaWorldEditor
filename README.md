@@ -1,4 +1,6 @@
 # BananaWorldEditor
+![BananaWorldEditor](doc/banana_logo2.png)
+
 Universal map editor for 3D games.
 
 - **Terrain editor** — visual grid editing for outdoor maps
@@ -97,5 +99,7 @@ uv run --project <path-to-BananaWorldEditor> <path-to-BananaWorldEditor>/bwe_cli
 ## License
 
 MIT — see [LICENSE](LICENSE). Copyright (c) 2022-2026 Vitaly Perov.
+
+![BananaWorldEditor stages](doc/banana_logo1.png)
 
 
