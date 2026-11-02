@@ -37,11 +37,16 @@ class GeneratorPluginBase:
         # Update the settings for this plugin
         allSettings['plugins'][self.childPluginClassName] = self.settings
 
-        # Save the updated settings
-        with open(self.allPluginsSettingsFileName, 'w') as f:
-            json.dump(allSettings, f, indent=4)
-
-        print("Settings saved")
+        # TODO: persist settings to the user config dir instead of the cwd tree,
+        # so saving works from read-only locations too
+        try:
+            # Save the updated settings
+            with open(self.allPluginsSettingsFileName, 'w') as f:
+                json.dump(allSettings, f, indent=4)
+        except OSError as e:
+            print(f"Error: Could not save settings to {self.allPluginsSettingsFileName}: {e}")
+        else:
+            print("Settings saved")
 
     def loadAllPluginsSettings(self):
         # Load the global settings file (all plugins settings)

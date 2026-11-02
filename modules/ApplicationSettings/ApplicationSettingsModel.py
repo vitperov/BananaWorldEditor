@@ -65,8 +65,13 @@ class ApplicationSettingsModel:
         self._saveSettings()
 
     def _saveSettings(self):
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
-        # Write updated settings to file
-        with open(self.settings_file, "w") as f:
-            json.dump(self.settings, f, indent=4)
+        # TODO: persist settings to the user config dir instead of the cwd tree,
+        # so saving works from read-only locations too
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(self.settings_file), exist_ok=True)
+            # Write updated settings to file
+            with open(self.settings_file, "w") as f:
+                json.dump(self.settings, f, indent=4)
+        except OSError as e:
+            print(f"Error: Could not save settings to {self.settings_file}: {e}")
