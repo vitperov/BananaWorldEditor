@@ -2,7 +2,9 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 import os
 import json
-from typing import List, Dict, Set, Any
+from typing import List, Dict, Set, Any, Optional
+
+from modules.Geometry3D.ObjectGeometry import ObjectGeometry
 
 class AdditionalPropertyObj:
     def __init__(self, name: str, type: str, options: List[str] = None):
@@ -11,7 +13,7 @@ class AdditionalPropertyObj:
         self.options = options if options is not None else []
 
 class MapObject:
-    def __init__(self, name: str, categories: str, iconFile: str, contour: str, w: int = 1, h: int = 1, additional_properties: List[AdditionalPropertyObj] = None):
+    def __init__(self, name: str, categories: str, iconFile: str, contour: str, w: int = 1, h: int = 1, additional_properties: List[AdditionalPropertyObj] = None, geometry: Optional[ObjectGeometry] = None):
         self.name = name
         self.categories = categories
         self.iconFile = iconFile
@@ -19,6 +21,7 @@ class MapObject:
         self.w = w
         self.h = h
         self.additional_properties = additional_properties if additional_properties is not None else []
+        self.geometry = geometry
 
     @classmethod
     def from_json(cls, json_data: Dict, base_path: str):
@@ -26,6 +29,8 @@ class MapObject:
             AdditionalPropertyObj(prop.get('name', ''), prop.get('type', ''), prop.get('options'))
             for prop in json_data.get('additionalProperties', [])
         ]
+        geometry_json = json_data.get('geometry')
+        geometry = ObjectGeometry.from_json(geometry_json, base_path) if geometry_json else None
         return cls(
             name=json_data.get('name', ''),
             categories=json_data.get('categories', ''),
@@ -33,7 +38,8 @@ class MapObject:
             contour=json_data.get('contour', ''),
             w=json_data.get('w', 1),
             h=json_data.get('h', 1),
-            additional_properties=additional_properties
+            additional_properties=additional_properties,
+            geometry=geometry
         )
         
     def isContour(self):
