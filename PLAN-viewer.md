@@ -96,7 +96,7 @@ day one — retrofitting it after maps exist would be painful.
   nearly invisible anyway because both legs share the same external
   texture.
 
-## Draft geometry schema (to refine during implementation)
+## Geometry schema
 
 One part = one box = one texture slot. No per-face texture mapping:
 splitting a wall into an internal slab and an external slab is simpler
@@ -172,11 +172,10 @@ Converter math (per object, the genuinely bug-prone part):
 - texture slots resolve from additionalProperties; missing values
   resolve to None rather than failing.
 
-No whole-house smoke test for now: without a load/render procedure it
-would only re-run the converter the invariants already cover.
-Revisit when the viewer exists — the useful future version is map
-validation (referenced models and texture names actually exist in the
-catalogs).
+No whole-house smoke test: it would only re-run the converter the
+invariants already cover. The useful future version is map validation
+(referenced models and texture names actually exist in the catalogs),
+worth adding together with the glTF exporter.
 
 ## To investigate later
 
@@ -199,21 +198,33 @@ catalogs).
   `"type": "mesh"` object (furniture) appears; pick `trimesh` or
   `pygltflib` then.
 
-## Milestones
+## Current state
 
-1. **Geometry support in the catalog.** *(done)* `geometry` parsing in
-   `ObjectsCollection` (`modules/Geometry3D/ObjectGeometry.py`),
-   primitive geometry for Wall and Corner in their `object.json`,
-   converter `modules/Geometry3D/MapToPrimitives.py` (map square →
-   placed, rotated, texture-resolved boxes), invariant tests in
-   `tests/test_geometry_invariants.py`.
-2. **Python 3D view.** QOpenGLWidget-based viewer (pure PyQt5: QOpenGL*
-   classes + QMatrix4x4, zero new dependencies) with orbit/zoom
-   camera, rendering the placed boxes — untextured first, then
-   textures per face via QOpenGLTexture. Opened from the house editor.
-3. **More construction objects.** Window, door, floor as multi-box
+- **Geometry layer** (`modules/Geometry3D/`, Qt-free): `Primitives.py`
+  (Box: rotate/translate/intersect), `ObjectGeometry.py` (parses the
+  catalog `geometry` field), `MapToPrimitives.py` (map square →
+  placed, rotated, texture-resolved world boxes; owns `SQUARE_SIZE`
+  and `FLOOR_HEIGHT`). Wall and Corner carry geometry in their
+  `object.json`. Invariant tests:
+  `python3 -m unittest discover -s tests` (no Qt needed).
+- **3D viewer** (`modules/Viewer3D/`): `SceneBuilder.py` turns a map
+  model into boxes (skips objects without geometry, adds a thin ground
+  slab); `Viewer3DWindow.py` is a non-modal window with a
+  QOpenGLWidget renderer — pure PyQt5 (shader program, QMatrix4x4,
+  versionFunctions), zero new dependencies. Orbit (left drag), pan
+  (right drag), zoom (wheel); camera starts at 35° elevation fitted to
+  the scene. Opened by the "3D" button in the house editor toolbar;
+  each click rebuilds the scene from the current map. Boxes are
+  flat-colored by resolved texture name (stable hash color; gray when
+  the texture property is unset).
+
+## Next steps
+
+1. **Textures in the viewer.** QOpenGLTexture from the texture catalog
+   images, UVs tiled by world size (the UV rule above).
+2. **More construction objects.** Window, door, floor as multi-box
    compositions; terrain level.
-4. **glTF export.** Serialize the same box lists to .glb meshes + a
+3. **glTF export.** Serialize the same box lists to .glb meshes + a
    manifest; decide the texture embedding question (above).
-5. **Engine loaders.** Unity first: map file + manifest + glTF → scene
+4. **Engine loaders.** Unity first: map file + manifest + glTF → scene
    with material slots filled.
