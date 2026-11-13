@@ -20,6 +20,7 @@ class HouseToolbar(QWidget):
     generateWallFrame = pyqtSignal()
     generateRoofFrame = pyqtSignal()
     generateRoofFrameHalf = pyqtSignal()
+    view3D = pyqtSignal()
 
     ICON_SIZE = QSize(32, 32)  # Common size constant for all icons
 
@@ -83,6 +84,10 @@ class HouseToolbar(QWidget):
         self._generateRoofHalfBtn.setIcon(QIcon("resources/roof-frame-half.png"))
         self._generateRoofHalfBtn.setIconSize(self.ICON_SIZE)
 
+        # No Qt standard icon depicts a 3D view, so a text label it is.
+        self._view3DBtn = QPushButton("3D")
+        self._view3DBtn.setToolTip("Open 3D view")
+
         # Create dropdown for Floor
         self._floorComboBox = QComboBox()
         self._floorComboBox.addItems(map(str, [i * 0.5 for i in range(7)]))
@@ -108,6 +113,7 @@ class HouseToolbar(QWidget):
         self._layout.addWidget(self._generateWallBtn)
         self._layout.addWidget(self._generateRoofBtn)
         self._layout.addWidget(self._generateRoofHalfBtn)
+        self._layout.addWidget(self._view3DBtn)
         self._layout.addWidget(QLabel("Floor:"))
         self._layout.addWidget(self._floorComboBox)
         self._layout.addWidget(QLabel("Floor height:"))
@@ -122,6 +128,7 @@ class HouseToolbar(QWidget):
         self._generateWallBtn.clicked.connect(self.generateWallFrame.emit)
         self._generateRoofBtn.clicked.connect(self.generateRoofFrame.emit)
         self._generateRoofHalfBtn.clicked.connect(self.generateRoofFrameHalf.emit)
+        self._view3DBtn.clicked.connect(self.view3D.emit)
 
         QShortcut(QKeySequence.New, self, self._newFile)
         QShortcut(QKeySequence.Open, self, self._openFile)

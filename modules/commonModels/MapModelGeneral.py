@@ -166,6 +166,11 @@ class MapModelGeneral(QObject):
         """Public read-only accessor for every square (all z-levels), so
         callers (CLI dump/describe, renderer) do not reach into _squares."""
         return self._squares
+
+    def getObjectsCollection(self):
+        """Public read-only accessor for the object catalog, so callers
+        (3D viewer) do not reach into _objCollection."""
+        return self._objCollection
         
     def getAllObjectOfType(self, modelType, selectionRange=None):
         result = []
