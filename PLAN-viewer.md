@@ -228,6 +228,21 @@ own texture), and costs nothing (see note below).
   (2 L-legs × internal/external slab), step-joined with no overlaps
   and no enclosed voids; the leg along y covers the outer corner
   quadrant so a plain Corner needs no filler.
+- Window = the wall's two slabs cut into 4 pieces around a 1.2 x 1.2
+  opening (sill 0.9, head 2.1) — the reveals take the slab textures —
+  plus a frame (5 cm perimeter + cross, 6 cm deep, centered in the
+  wall), an external casing (10 cm wide, 5 cm proud of the facade) and
+  an internal windowsill (4 cm thick, 15 cm into the room). The sill
+  board spans the whole square (x 0..2), not just the opening, so
+  adjacent windows butt into one continuous sill; a short infill fills
+  the opening between frame and internal face so there is no step.
+  Where a window meets a perpendicular wall, the board end is buried in
+  that wall — harmless and realistic.
+  Slots: `internalTexture`, `externalTexture`, `frameTexture`,
+  `casingTexture`, `sillTexture`. "Casing" over "trim" (generic: baseboards, corner
+  boards) and "molding" (implies a profile boxes don't have) because it
+  is the specific term for the trim around an opening, so the Door can
+  reuse the slot name. No glass.
 - `"type": "mesh"` form: `{"type": "mesh", "file": "Sofa.glb"}`.
 - At export, all parts sharing a slot merge into one submesh / glTF
   primitive, so the mesh still has exactly one material slot per
@@ -307,7 +322,8 @@ worth adding together with the glTF exporter.
   catalog `geometry` field), `MapToPrimitives.py` (map square →
   placed, rotated, texture-resolved world boxes; owns `SQUARE_SIZE`
   and `FLOOR_HEIGHT`, and `FOOTPRINT_MARGIN`). Wall and Corner carry
-  geometry in their `object.json`, centered on the grid line;
+  geometry in their `object.json`, centered on the grid line, and so
+  does Window;
   `Pillar` and `ThinPillar` are the hand-placed corner fillers.
   Invariant tests:
   `python3 -m unittest discover -s tests` (no Qt needed).
@@ -326,7 +342,7 @@ worth adding together with the glTF exporter.
 
 1. **Textures in the viewer.** QOpenGLTexture from the texture catalog
    images, UVs tiled by world size (the UV rule above).
-2. **More construction objects.** Window, door, floor as multi-box
+2. **More construction objects.** Door, floor as multi-box
    compositions; terrain level.
 3. **glTF export.** Serialize the same box lists to .glb meshes + a
    manifest; decide the texture embedding question (above).
