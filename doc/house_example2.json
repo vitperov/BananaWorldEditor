@@ -1,0 +1,1505 @@
+{
+    "version": 1,
+    "basePrefab": "House",
+    "floorHeight": 1.0,
+    "squares": [
+        {
+            "rotation": "0",
+            "model": "Corner",
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "8b883e3c-9065-466d-ae3a-dbfb490f4d5b"
+        },
+        {
+            "rotation": "0",
+            "model": "Window",
+            "x": 1,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "07019ab7-5855-402b-a11c-4252b8577937"
+        },
+        {
+            "rotation": "0",
+            "model": "Wall",
+            "x": 2,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d52b57eb-2e0b-4c76-8aa2-bffaa40e18ce"
+        },
+        {
+            "rotation": "0",
+            "model": "Window",
+            "x": 3,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "c3917eab-921c-4c09-b0bf-63b53595aae4"
+        },
+        {
+            "rotation": "0",
+            "model": "Wall",
+            "x": 4,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "65c26fca-d689-4029-b4c6-2416d48df6ca"
+        },
+        {
+            "rotation": "90",
+            "model": "Corner",
+            "x": 5,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4b646ab8-8c44-41cd-ad54-936c0fd041b0"
+        },
+        {
+            "rotation": "90",
+            "model": "Empty",
+            "x": 6,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "29f4e2a5-16f6-4e61-9561-852ad5476608"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "824314b7-96b1-49cb-b16b-b1b8670f5e3a"
+        },
+        {
+            "rotation": "270",
+            "model": "Door",
+            "x": 0,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "658a29c7-6fda-4273-ba0d-68cc28092321"
+        },
+        {
+            "rotation": "180",
+            "model": "Floor",
+            "x": 1,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "26736c75-b473-493c-833e-edaf65b3f71e"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d61fe730-84d0-43da-9f9c-2f4842b31872"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f50e6734-71df-44a5-ac14-56b9c1a79a78"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "072fd4f0-1213-4851-8f88-d97a8d613aa8"
+        },
+        {
+            "rotation": "90",
+            "model": "Wall",
+            "x": 5,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "50288c6e-8e10-4f77-94d5-a266b8e1fab6"
+        },
+        {
+            "rotation": "90",
+            "model": "Empty",
+            "x": 6,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "716d2672-67d7-48cb-9358-1a5ce8da0f18"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "001c431b-a727-477f-981b-a7379fd8a0a0"
+        },
+        {
+            "rotation": "270",
+            "model": "Wall",
+            "x": 0,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d5ca6640-fe70-4121-970e-ce8c192c599f"
+        },
+        {
+            "rotation": "180",
+            "model": "Door",
+            "x": 1,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "79285fdc-1fed-4b0f-920b-bea55ed5c548",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 2,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f9171cce-8105-4279-91a2-5d867cb8909e",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Door",
+            "x": 3,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7beabfeb-ab9f-480d-a19c-45bd5c016756",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 4,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "c35ab3b6-47c3-4b1a-9f41-64813fc661c6",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Door",
+            "x": 5,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "bbe6da65-6c2a-429b-8369-4e14072119f2",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "90",
+            "model": "Empty",
+            "x": 6,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f31fdad6-27db-427f-8db2-01ec79895b08"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f0e320df-49c2-4598-96e6-8ffca3851c61"
+        },
+        {
+            "rotation": "270",
+            "model": "Wall",
+            "x": 0,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f3f81e82-8b77-431e-ba0c-499c6359d69b"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 1,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "e152acf3-d66c-4c8d-9438-9166ab895c8a"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "04e6b00e-f1ca-4c92-8479-0233584d3a72"
+        },
+        {
+            "rotation": "270",
+            "model": "Corner",
+            "x": 3,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "dc44aa52-36d8-46b3-9943-c0870c05cedd",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Corner",
+            "x": 4,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "59b4552f-934f-41b9-ab71-d7a5cda6b617",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "90",
+            "model": "Wall",
+            "x": 5,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "2c202b02-4be7-4f26-b47b-a16fa6ba92f5"
+        },
+        {
+            "rotation": "90",
+            "model": "Empty",
+            "x": 6,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d1c084af-faee-4178-8d63-b20984655032"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "ccea2512-b064-4b96-a846-8e210011c77d"
+        },
+        {
+            "rotation": "270",
+            "model": "Window",
+            "x": 0,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "937e96a7-1e59-4795-af27-de3187f9a36b"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 1,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "fa31a27a-f21c-4bca-aa3f-cf0c2211fa1b"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "35e3a423-1860-4b8d-a324-d2f33a0c0b25"
+        },
+        {
+            "rotation": "270",
+            "model": "Wall",
+            "x": 3,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4e10bf79-4e7d-4b9a-9fce-666561ea6d9c",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "694e7521-d154-4c5c-b6e8-5aaa26598e3d"
+        },
+        {
+            "rotation": "90",
+            "model": "Wall",
+            "x": 5,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "682c1f01-c2b9-4d17-869e-03aca2c480ae"
+        },
+        {
+            "rotation": "90",
+            "model": "Empty",
+            "x": 6,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "13cce35a-ef8b-4437-8f16-97e1d19c9bb4"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "9a19d584-3b28-4b52-8cfe-aa7dee8a06ea"
+        },
+        {
+            "rotation": "270",
+            "model": "Corner",
+            "x": 0,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "e363ce4e-5c55-4b30-932f-53f1f83e5d45"
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 1,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "a9166de0-0dfd-42c4-b075-7c5ca2b45f21"
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 2,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "8beab07e-466b-4192-8adc-9233330ab79e"
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 3,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "58d9daea-2c53-40af-a0cc-f0f9a27b23f1"
+        },
+        {
+            "rotation": "180",
+            "model": "Window",
+            "x": 4,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "6015429a-ea5b-4f1d-8692-314cf58e849f"
+        },
+        {
+            "rotation": "180",
+            "model": "Corner",
+            "x": 5,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "b82ff81d-7ffc-476b-b1bf-27ee106c8671"
+        },
+        {
+            "rotation": "180",
+            "model": "Empty",
+            "x": 6,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d4fcab4e-115a-4e0e-bca4-9d768749917c"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "ef6d753d-febd-4a28-b271-d8f4875a3386"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 0,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "1c4d11ed-7ba4-423a-932d-0eadc617c8b8"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 1,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "d97331e6-da76-4f12-9f95-9da4588b0b3c"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 2,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "1568104e-00cf-4b54-b891-4c97d42eddc5"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 3,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "c4056a9c-a0f5-4a52-8afe-c5bbadad0287"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 4,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7eb49fa0-d64d-473f-b1f8-25261998bf2e"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 5,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "716fe448-8c62-45e3-817b-6789674f3ea9"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 6,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "a65b189d-a572-409b-ae14-0327fe79cc1d"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 6,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "98ce3d8e-6047-46cc-ad55-e3152a7576c3"
+        },
+        {
+            "rotation": "270",
+            "model": "Wall",
+            "x": 3,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "a86bcf22-0680-4e49-85bf-6b6404ba3ec2",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "180",
+            "model": "Wall",
+            "x": 0,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "b89b5b45-c0ad-4bfc-a605-67586eab0292",
+            "additionalProperties": {
+                "externalTexture": "WoodenWall",
+                "internalTexture": "WoodenWall"
+            }
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 1,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "ef136f7d-eb83-4d6f-958f-cca9b94de6da"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "c4fceda2-8e95-41e6-a2f9-823bac947a33"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4429c5f9-0c8b-45d0-a6c4-52a9d995731c"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "2b09603f-eb90-4d31-932e-80179ac18685"
+        },
+        {
+            "rotation": "90",
+            "model": "Wall",
+            "x": 5,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "2651163a-aac4-438d-ab39-11bec404c18c"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "a78f4672-5791-4747-b327-264d65c2c24e"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "bc7da00a-55a8-4a8c-af23-f46de1bfcf7b"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "369c2b7e-6857-46d3-a6c3-42bad918eecc"
+        },
+        {
+            "rotation": "270",
+            "model": "Bed2p",
+            "x": 3,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "3cce813f-50e2-468d-b6a8-1e9d1f8b14d1"
+        },
+        {
+            "rotation": "270",
+            "model": "Drawer",
+            "x": 3,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "0d150783-bb01-4de5-8814-5be7e8bf0b17"
+        },
+        {
+            "rotation": "180",
+            "model": "Counter",
+            "x": 0,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "ef261732-87d2-40b2-9c6a-85599e47e17a",
+            "additionalProperties": {
+                "lootContainer": "kitchenCounter"
+            }
+        },
+        {
+            "rotation": "90",
+            "model": "Fridge",
+            "x": 2,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "e1d308bd-ce89-4980-9afc-df3fbdfbda93"
+        },
+        {
+            "rotation": "180",
+            "model": "SinkOven",
+            "x": 1,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4f791f35-5d19-4ed5-b6cc-826a84f70ea8"
+        },
+        {
+            "rotation": "0",
+            "model": "Light",
+            "x": 2,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "250bbe60-6fce-4f5d-ad54-eadec4107863"
+        },
+        {
+            "rotation": "0",
+            "model": "Light",
+            "x": 1,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "70f02585-2c3e-4587-a4e9-a5c6cf6eae12"
+        },
+        {
+            "rotation": "0",
+            "model": "Light",
+            "x": 4,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "cb733370-17c6-4095-8e3c-203ea1e240bb"
+        },
+        {
+            "rotation": "0",
+            "model": "TableChairs",
+            "x": 2,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "caf536e4-1c75-439b-949f-6acb9f2c7334"
+        },
+        {
+            "rotation": "0",
+            "model": "Light",
+            "x": 4,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "e8982fba-3d43-4f51-a641-1c02dcb88042"
+        },
+        {
+            "rotation": "0",
+            "model": "Sofa",
+            "x": 4,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "b0da19cc-fdff-4f64-88f3-69762b3a4148"
+        },
+        {
+            "rotation": "180",
+            "model": "Wardrobe",
+            "x": 5,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "dae110c1-cb14-49d3-a0a2-c7ed04f8af67",
+            "additionalProperties": {
+                "lootContainer": "wardrobe"
+            }
+        },
+        {
+            "rotation": "90",
+            "model": "Toilet",
+            "x": 4,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "cd78e40b-35f9-4634-aaad-e617fd3f8312"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 0,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "dfa12aa4-87d6-4192-8bce-892be9455f92"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 1,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4ac5cfd9-1b08-453a-80e9-e2d67da528c0"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 2,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "cd06c6f7-e43a-4f78-a144-4fd544dad62a"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 3,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7e0885b5-af2e-469a-bbb9-ab9cfe941644"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 4,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "5e97ec9f-056b-4b85-a788-e3c36d181aa3"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 5,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7587b409-daf4-4560-96a3-266240ff082c"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 6,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "6cb09d9f-df7f-4588-9ac5-170cfb0c5c56"
+        },
+        {
+            "rotation": "0",
+            "model": "Empty",
+            "x": 7,
+            "y": 7,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "1ecba674-9ea7-4603-b78e-3b41bee6cfd1"
+        },
+        {
+            "rotation": "90",
+            "model": "Bookshelf",
+            "x": 5,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "2cf2cec3-b655-4f8b-a97d-a2398d5e77a7"
+        },
+        {
+            "rotation": "180",
+            "model": "TvSet",
+            "x": 4,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "94a06606-33e9-4866-b42d-d7b31a9c7a3e"
+        },
+        {
+            "rotation": "0",
+            "model": "RoofCornerHalf",
+            "x": 0,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "602b3395-860f-4fb1-a640-1c0226988c24"
+        },
+        {
+            "rotation": "90",
+            "model": "RoofCornerHalf",
+            "x": 5,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "32605e89-e327-46ab-9408-34fe549c29f0"
+        },
+        {
+            "rotation": "270",
+            "model": "RoofCornerHalf",
+            "x": 0,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "526ff84e-22c0-4ca8-92fa-d1dfb6cdeeb1"
+        },
+        {
+            "rotation": "180",
+            "model": "RoofCornerHalf",
+            "x": 5,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "6e7d68db-0bcf-4712-bb98-b6f21792a6a8"
+        },
+        {
+            "rotation": "0",
+            "model": "PitchedRoofHalf",
+            "x": 1,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "5ed42650-aac4-484a-bc0b-2053f7cc5649"
+        },
+        {
+            "rotation": "0",
+            "model": "PitchedRoofHalf",
+            "x": 2,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "b2381821-3079-4e48-88f0-97380dfb814b"
+        },
+        {
+            "rotation": "0",
+            "model": "PitchedRoofHalf",
+            "x": 3,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "b9f70915-9736-49b5-bf53-3547fb52f604"
+        },
+        {
+            "rotation": "0",
+            "model": "PitchedRoofHalf",
+            "x": 4,
+            "y": 0,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "205090c5-05a2-4af4-840d-d25f3221af08"
+        },
+        {
+            "rotation": "270",
+            "model": "PitchedRoofHalf",
+            "x": 0,
+            "y": 1,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "63704a7e-c607-4d5b-a6b1-49289ef2273f"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 1,
+            "y": 1,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "e60323a2-9b65-44a3-8342-4cde1405da05"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 2,
+            "y": 1,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "6e1fed4b-6877-49a6-95f0-14cf526889db"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 3,
+            "y": 1,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "9b3bfe02-3b7f-4cb0-88a8-97bfca928667"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 4,
+            "y": 1,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "34aadd2d-37d3-42dd-89fe-6d1ae5993ebd"
+        },
+        {
+            "rotation": "90",
+            "model": "PitchedRoofHalf",
+            "x": 5,
+            "y": 1,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "3d3c62dc-4c68-4b8a-95c8-92fda9723b5d"
+        },
+        {
+            "rotation": "270",
+            "model": "PitchedRoofHalf",
+            "x": 0,
+            "y": 2,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "67e8798c-4f5d-409c-ac85-f2df2d894836"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 1,
+            "y": 2,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "33e04a6f-d33d-48d8-98c0-ae0621204d6a"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 2,
+            "y": 2,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "c792811c-e878-48d8-9ade-b2cb1d8d8d96"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 3,
+            "y": 2,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "f9a7cc58-2905-4fb9-850b-4e9f85e0b940"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 4,
+            "y": 2,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "af71468e-38fe-449d-a817-7a7d1afba0d2"
+        },
+        {
+            "rotation": "90",
+            "model": "PitchedRoofHalf",
+            "x": 5,
+            "y": 2,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "d8e38da8-6800-4cab-8493-f72bb014c502"
+        },
+        {
+            "rotation": "270",
+            "model": "PitchedRoofHalf",
+            "x": 0,
+            "y": 3,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "ee25dda6-a9c4-42a6-936e-5b286e3fe179"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 1,
+            "y": 3,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "8fd5bc2e-0cb9-4428-a78d-3b36e8d35fc1"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 2,
+            "y": 3,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "f52b2fcc-630d-4191-ac57-152e0cfeb0fa"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 3,
+            "y": 3,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "2d7ed775-d51d-441c-8246-49362e6c2321"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 4,
+            "y": 3,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "4ba4975b-6bbe-4a9d-9b5b-1bc96eff9fa2"
+        },
+        {
+            "rotation": "90",
+            "model": "PitchedRoofHalf",
+            "x": 5,
+            "y": 3,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "461d41e8-7dd4-4988-80f7-93591bfcf327"
+        },
+        {
+            "rotation": "270",
+            "model": "PitchedRoofHalf",
+            "x": 0,
+            "y": 4,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "470df420-7312-4794-939a-5589113dbc7b"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 1,
+            "y": 4,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "af5b9548-cfcc-4428-a9e5-57bf532d9300"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 2,
+            "y": 4,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "383a2f80-2953-4348-826b-3389902c8b51"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 3,
+            "y": 4,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "2b4c8b9d-0832-46e2-b234-8bddb5cd619c"
+        },
+        {
+            "rotation": "0",
+            "model": "FlatRoof",
+            "x": 4,
+            "y": 4,
+            "z": 3,
+            "w": 1,
+            "h": 1,
+            "id": "4b0da472-9a18-4e3c-b9b2-612bdcb27f75"
+        },
+        {
+            "rotation": "90",
+            "model": "PitchedRoofHalf",
+            "x": 5,
+            "y": 4,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "2e884cae-7f81-4972-995d-097e6f783c36"
+        },
+        {
+            "rotation": "180",
+            "model": "PitchedRoofHalf",
+            "x": 1,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "27f370f3-2674-4711-8021-a89e247599a1"
+        },
+        {
+            "rotation": "180",
+            "model": "PitchedRoofHalf",
+            "x": 2,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "c9c50c12-d3d0-4fbe-8a46-dc7633839263"
+        },
+        {
+            "rotation": "180",
+            "model": "PitchedRoofHalf",
+            "x": 3,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "20331da6-8563-4ad7-ac71-654a14b2df4c"
+        },
+        {
+            "rotation": "180",
+            "model": "PitchedRoofHalf",
+            "x": 4,
+            "y": 5,
+            "z": 2,
+            "w": 1,
+            "h": 1,
+            "id": "036cc733-34e6-4a18-8a75-86db019ae7d4"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "1513694a-cc90-4a41-8aac-c228763fe345"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 1,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7186640d-4746-4626-9151-d14e638fbd07"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "bfce8e5f-1abf-4572-8c9d-b2744ea69ac6"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "642b1ac4-849f-4ba6-9323-dcbf9f0e4a89"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "47392b99-003b-4082-aea7-bef38e980da7"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 0,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "0929b78e-c8d2-403c-b70d-8c45ae55a017"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "76f1605e-ea7c-44b4-a063-d6fb0a244f71"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "89a12453-b281-4cec-b767-99245d139011"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "e8d8aca3-93d9-4c28-b4bd-f811ab3dec3e"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "ef432ab0-e23d-4eef-9fc5-ba66acda1d5c"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 0,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "6783187d-c373-4ae6-867a-90eedfdccfbe"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 1,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "b74725f9-998e-48ce-8b79-e2920e9ce878"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 2,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "f98c6848-5d15-48e7-9ab7-26bd27fda2f3"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 1,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "1533e316-3636-4248-95dc-30df2a864063"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 2,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "7ee28b8d-af0e-4971-b9bd-b00e5d245d5d"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 3,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4c15960e-ba36-498e-85ef-24da9eff5e3d"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 4,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "276965a7-c04f-4571-903f-bd43825ea515"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 5,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "64704e37-6bc9-4f01-8196-9e575ec077fc"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 3,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "4ff62b16-29eb-437b-b380-fb56e797799d"
+        },
+        {
+            "rotation": "0",
+            "model": "Floor",
+            "x": 4,
+            "y": 5,
+            "z": 0,
+            "w": 1,
+            "h": 1,
+            "id": "a1b119d8-e6aa-46be-b546-12d2d893ab3d"
+        }
+    ],
+    "width": 6,
+    "height": 6
+}
