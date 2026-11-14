@@ -137,12 +137,13 @@ fillers below.
 
 The notch is filled by a small catalog object the user places
 explicitly, in the square and rotation that put it at the right
-vertex. Two sizes:
+vertex (rotation picks which of the square's four corners). Two
+catalog entries, one `externalTexture` slot each:
 
-- **flush**: 0.1 x 0.1 x 3, exactly the missing quadrant, at square-
+- **`ThinPillar`** (flush): 0.1 x 0.1 x 3, exactly the missing quadrant, at square-
   local (-0.1, -0.1) at rotation 0. Invisible as a joint — the corner
   simply looks solid.
-- **protruding**: 0.2 x 0.2 x 3, centered on (-0.1, -0.1), i.e.
+- **`Pillar`** (protruding): 0.2 x 0.2 x 3, centered on (-0.1, -0.1), i.e.
   spanning -0.2..0.0. It stands 0.1 m proud of both wall faces, which
   is what real house corners (quoins) look like, and it carries its
   own texture slot, so corners can be stone against plastered walls.
@@ -153,8 +154,9 @@ strip and z-fight in every engine. Offset, every shared face is an
 interface between two solids and is never visible.
 
 The same object doubles as a free-standing stud or post — canopy
-supports, shed corners, fence posts — so its name and category are not
-corner-specific.
+supports, shed corners, fence posts — hence the name `Pillar` rather
+than anything corner-specific, and category `indoor,outdoor` so both the
+house and the terrain editor offer it.
 
 **Rejected: generating fillers automatically** from the wall network
 (fill the uncovered quadrant wherever exactly two walls meet at 90
@@ -305,7 +307,8 @@ worth adding together with the glTF exporter.
   catalog `geometry` field), `MapToPrimitives.py` (map square →
   placed, rotated, texture-resolved world boxes; owns `SQUARE_SIZE`
   and `FLOOR_HEIGHT`, and `FOOTPRINT_MARGIN`). Wall and Corner carry
-  geometry in their `object.json`, centered on the grid line.
+  geometry in their `object.json`, centered on the grid line;
+  `Pillar` and `ThinPillar` are the hand-placed corner fillers.
   Invariant tests:
   `python3 -m unittest discover -s tests` (no Qt needed).
 - **3D viewer** (`modules/Viewer3D/`): `SceneBuilder.py` turns a map
@@ -321,14 +324,11 @@ worth adding together with the glTF exporter.
 
 ## Next steps
 
-1. **Corner filler object.** Two catalog entries (flush 0.1 and
-   protruding 0.2, see above), placed by hand. Name still to be
-   decided — it is also a free-standing post, so not corner-specific.
-2. **Textures in the viewer.** QOpenGLTexture from the texture catalog
+1. **Textures in the viewer.** QOpenGLTexture from the texture catalog
    images, UVs tiled by world size (the UV rule above).
-3. **More construction objects.** Window, door, floor as multi-box
+2. **More construction objects.** Window, door, floor as multi-box
    compositions; terrain level.
-4. **glTF export.** Serialize the same box lists to .glb meshes + a
+3. **glTF export.** Serialize the same box lists to .glb meshes + a
    manifest; decide the texture embedding question (above).
-5. **Engine loaders.** Unity first: map file + manifest + glTF → scene
+4. **Engine loaders.** Unity first: map file + manifest + glTF → scene
    with material slots filled.

@@ -1,0 +1,22 @@
+{
+    "name": "ThinPillar",
+    "categories": "indoor,outdoor",
+    "iconFile": "ThinPillar.png",
+    "additionalProperties": [
+        {
+            "type": "texture",
+            "name": "externalTexture"
+        }
+    ],
+    "geometry": {
+        "type": "primitives",
+        "parts": [
+            {
+                "shape": "box",
+                "origin": [-0.1, -0.1, 0.0],
+                "size": [0.1, 0.1, 3.0],
+                "textureSlot": "externalTexture"
+            }
+        ]
+    }
+}

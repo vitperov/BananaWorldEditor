@@ -1,0 +1,22 @@
+{
+    "name": "Pillar",
+    "categories": "indoor,outdoor",
+    "iconFile": "Pillar.png",
+    "additionalProperties": [
+        {
+            "type": "texture",
+            "name": "externalTexture"
+        }
+    ],
+    "geometry": {
+        "type": "primitives",
+        "parts": [
+            {
+                "shape": "box",
+                "origin": [-0.2, -0.2, 0.0],
+                "size": [0.2, 0.2, 3.0],
+                "textureSlot": "externalTexture"
+            }
+        ]
+    }
+}
