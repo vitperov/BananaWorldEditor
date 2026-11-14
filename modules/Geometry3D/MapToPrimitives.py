@@ -14,6 +14,13 @@ from modules.Geometry3D.ObjectGeometry import ObjectGeometry
 SQUARE_SIZE = 2.0
 FLOOR_HEIGHT = 3.0
 
+# Walls are centred on the grid line, so half of a wall slab sticks out
+# of the square that hosts it; roof overhangs will do the same. Geometry
+# is therefore allowed outside the square footprint. This margin is only
+# a sanity bound for authored data (it catches a misplaced decimal point,
+# not a deliberate overhang) and carries no meaning at runtime.
+FOOTPRINT_MARGIN = 0.5
+
 _ROTATION_STEPS = {'0': 0, '90': 1, '180': 2, '270': 3}
 
 

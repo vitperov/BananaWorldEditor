@@ -17,7 +17,8 @@ REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
 from modules.commonModels.ObjectsCollection import ObjectsCollection
-from modules.Geometry3D.MapToPrimitives import convertSquare, SQUARE_SIZE, FLOOR_HEIGHT
+from modules.Geometry3D.MapToPrimitives import (convertSquare, SQUARE_SIZE,
+                                                FLOOR_HEIGHT, FOOTPRINT_MARGIN)
 from modules.Geometry3D.Primitives import EPSILON
 
 ROTATIONS = ['0', '90', '180', '270']
@@ -57,17 +58,21 @@ class GeometryDataInvariants(unittest.TestCase):
                                        f"{obj.name}: part {part} has non-positive "
                                        f"size on axis {axis}")
 
-    def test_parts_fit_inside_footprint(self):
+    def test_parts_stay_near_the_footprint(self):
+        # Parts may leave the square: walls are centred on the grid line,
+        # so half their thickness belongs to the neighbouring square. Only
+        # grossly misplaced geometry is rejected (see FOOTPRINT_MARGIN).
         for obj in self.objects:
             bounds = (obj.w * SQUARE_SIZE, obj.h * SQUARE_SIZE, FLOOR_HEIGHT)
             for part in obj.geometry.parts:
                 for axis in range(3):
                     self.assertGreaterEqual(
-                        part.origin[axis], -EPSILON,
-                        f"{obj.name}: part {part} starts outside the footprint")
+                        part.origin[axis], -FOOTPRINT_MARGIN - EPSILON,
+                        f"{obj.name}: part {part} is far outside the footprint")
                     self.assertLessEqual(
-                        part.maxCorner()[axis], bounds[axis] + EPSILON,
-                        f"{obj.name}: part {part} ends outside the footprint")
+                        part.maxCorner()[axis],
+                        bounds[axis] + FOOTPRINT_MARGIN + EPSILON,
+                        f"{obj.name}: part {part} is far outside the footprint")
 
     def test_texture_slots_are_declared(self):
         for obj in self.objects:
@@ -157,7 +162,10 @@ class ConverterInvariants(unittest.TestCase):
                     sum(box.volume() for box in converted), baseVolume,
                     msg=f"{obj.name}: rotation changed total volume")
 
-    def test_rotated_parts_stay_inside_footprint(self):
+    def test_rotated_parts_stay_near_the_footprint(self):
+        # Rotation must not move geometry away from its square; the same
+        # margin as the unrotated check applies (walls straddle the grid
+        # line in every orientation).
         for obj in self.objects:
             if obj.w != obj.h:
                 # A rotated rectangular footprint is not the original
@@ -169,13 +177,14 @@ class ConverterInvariants(unittest.TestCase):
                 for box in self.convert(obj, rotation=rotation):
                     for axis in range(3):
                         self.assertGreaterEqual(
-                            box.origin[axis], -EPSILON,
-                            f"{obj.name} rotation {rotation}: {box} leaves "
-                            f"the footprint")
+                            box.origin[axis], -FOOTPRINT_MARGIN - EPSILON,
+                            f"{obj.name} rotation {rotation}: {box} is far "
+                            f"outside the footprint")
                         self.assertLessEqual(
-                            box.maxCorner()[axis], bounds[axis] + EPSILON,
-                            f"{obj.name} rotation {rotation}: {box} leaves "
-                            f"the footprint")
+                            box.maxCorner()[axis],
+                            bounds[axis] + FOOTPRINT_MARGIN + EPSILON,
+                            f"{obj.name} rotation {rotation}: {box} is far "
+                            f"outside the footprint")
 
     def test_texture_slots_resolve_from_properties(self):
         for obj in self.objects:
