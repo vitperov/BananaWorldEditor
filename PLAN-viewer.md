@@ -81,9 +81,13 @@ day one — retrofitting it after maps exist would be painful.
   exactly one place.
 - **Reference point: the square's min-x/min-y corner**, not the
   center. World placement is then a pure translation
-  (x * 2, y * 2, z * 3) matching the map file, JSON coordinates stay
-  non-negative, and the bounds check is simply 0..2. Rotation happens
+  (x * 2, y * 2, z * 3) matching the map file. Rotation happens
   around the footprint center, but only inside the converter.
+- **Geometry may leave its square.** Walls straddle the grid line and
+  roof eaves will overhang, so parts are not confined to 0..2. The
+  only bound is `FOOTPRINT_MARGIN` (0.5 m, in `MapToPrimitives.py`), a
+  sanity check on authored data — it catches a misplaced decimal
+  point, it is not a design constraint.
 - **Rotation matches the 2D editor**: the editor draws y downward and
   rotates icons clockwise on screen (QTransform().rotate()), so in map
   coordinates a 90-degree step is (dx, dy) -> (-dy, dx) around the
@@ -95,6 +99,95 @@ day one — retrofitting it after maps exist would be painful.
   primitive (new shape, UVs, export) only to hide a seam that is
   nearly invisible anyway because both legs share the same external
   texture.
+
+### Walls are centered on the grid line
+
+A wall slab spans -0.1..+0.1 across its line, not 0..0.2 inside its
+own square. This was changed after the first viewer test, and it is
+the rule the exporters and the engine loaders must follow too.
+
+Why, concretely — both problems come from the old "wall lives inside
+its square" rule:
+
+- **An internal wall showed its cross-section on the facade.** It ran
+  the full 2 m of its square, so its end cap landed exactly on the
+  outer surface of the perpendicular wall it met. Centered, the cap
+  lands on that wall's center plane instead and is buried inside it.
+- **An L of two walls depended on which square hosted each leg.** A
+  grid line is shared by two squares, so there were four ways to build
+  the same corner; three of them left a 0.2 m jog or a 0.2 x 0.2 x 3
+  void, and the 2D editor drew all four identically. Centered, all
+  four produce the same boxes. The host square now decides only which
+  side is external — the one thing it should decide.
+
+Costs, accepted: geometry leaves the square footprint by half a wall
+thickness (see `FOOTPRINT_MARGIN` above); the house's outer surface
+sits 0.1 m outside the grid rectangle, which roof overhangs must
+account for; placing walls on the same line from *both* neighbouring
+squares now yields two coincident slabs instead of a 0.4 m wall, which
+is a map mistake worth flagging in validation later.
+
+What centering does *not* fix: two walls meeting at 90 degrees cover
+three of the four quadrants around the grid vertex and leave the
+fourth — a 0.1 x 0.1 x 3 notch at the outside of the corner. No
+placement avoids it; it is inherent to cell-length walls. See corner
+fillers below.
+
+### Corner fillers are placed by hand, not generated
+
+The notch is filled by a small catalog object the user places
+explicitly, in the square and rotation that put it at the right
+vertex. Two sizes:
+
+- **flush**: 0.1 x 0.1 x 3, exactly the missing quadrant, at square-
+  local (-0.1, -0.1) at rotation 0. Invisible as a joint — the corner
+  simply looks solid.
+- **protruding**: 0.2 x 0.2 x 3, centered on (-0.1, -0.1), i.e.
+  spanning -0.2..0.0. It stands 0.1 m proud of both wall faces, which
+  is what real house corners (quoins) look like, and it carries its
+  own texture slot, so corners can be stone against plastered walls.
+
+The offset placement matters: a 0.2 post centered on the grid *vertex*
+instead would put its sides coplanar with the wall faces over a 0.1
+strip and z-fight in every engine. Offset, every shared face is an
+interface between two solids and is never visible.
+
+The same object doubles as a free-standing stud or post — canopy
+supports, shed corners, fence posts — so its name and category are not
+corner-specific.
+
+**Rejected: generating fillers automatically** from the wall network
+(fill the uncovered quadrant wherever exactly two walls meet at 90
+degrees). The rule is small and provably complete, but derived
+geometry has no object to hang properties on, so per-corner texture
+and size would need a parallel override mechanism, and the user loses
+the ability to simply not have a post somewhere. Explicit objects keep
+the map file the single source of truth: what the editor shows is what
+every engine gets, with no junction logic to re-implement per engine.
+
+The tedium of placing them is better solved by a generator plugin (see
+below) than by hiding the geometry from the map.
+
+### Ideas for later
+
+- **A "fill corners" generator plugin.** `generators/` already hosts
+  map-transforming plugins (`FixGrassUnderHouse` is the closest
+  analogue). A plugin can walk the map, find every vertex where
+  exactly two wall-type edges meet at 90 degrees, and insert a filler
+  object into the map — real objects the user can then move, retexture
+  or delete. This gives the convenience of autofill while keeping the
+  map explicit, and it runs when the user asks instead of on every
+  render.
+- **Corner as a nested object.** Once the editor supports nested
+  objects, `Corner` can be defined as a composition — two walls plus a
+  corner filler — that is inserted and manipulated as one object. The
+  corner then stops being a special primitive composition authored by
+  hand in `object.json`: it is literally the same walls and filler the
+  user would place themselves, so it cannot drift out of sync with
+  them. The same mechanism would cover wall+door and wall+window
+  corners as presets, and a porch, a bay window, a whole room template
+  afterwards. Until then `Corner` stays as it is: a hand-authored L
+  that fills its own quadrant, for the common all-plain-wall case.
 
 ## Geometry schema
 
@@ -109,13 +202,13 @@ own texture), and costs nothing (see note below).
     "parts": [
         {
             "shape": "box",
-            "origin": [0.0, 0.0, 0.0],
+            "origin": [0.0, -0.1, 0.0],
             "size": [2.0, 0.1, 3.0],
             "textureSlot": "externalTexture"
         },
         {
             "shape": "box",
-            "origin": [0.0, 0.1, 0.0],
+            "origin": [0.0, 0.0, 0.0],
             "size": [2.0, 0.1, 3.0],
             "textureSlot": "internalTexture"
         }
@@ -124,13 +217,15 @@ own texture), and costs nothing (see note below).
 ```
 
 - `origin`/`size` in meters, square-local (origin at the square's
-  min-x/min-y corner, footprint spans 0..2, height 0..3); authored at
-  rotation 0, the map's `rotation` (0/90/180/270) rotates the whole
-  part list around the square center.
+  min-x/min-y corner, height 0..3); authored at rotation 0, the map's
+  `rotation` (0/90/180/270) rotates the whole part list around the
+  square center. Parts may stick out of the square — the wall above
+  starts at y = -0.1 because walls are centered on the grid line.
 - `textureSlot` names a slot from `additionalProperties`.
 - Wall = 2 slabs (internal + external). Corner = 4 boxes
   (2 L-legs × internal/external slab), step-joined with no overlaps
-  and no enclosed voids.
+  and no enclosed voids; the leg along y covers the outer corner
+  quadrant so a plain Corner needs no filler.
 - `"type": "mesh"` form: `{"type": "mesh", "file": "Sofa.glb"}`.
 - At export, all parts sharing a slot merge into one submesh / glTF
   primitive, so the mesh still has exactly one material slot per
@@ -156,7 +251,10 @@ Implemented in `tests/test_geometry_invariants.py`
 
 Data validation (per object):
 - every part's size components are > 0;
-- every part lies inside the object's footprint (0..2w, 0..2h, 0..3);
+- every part stays near the object's footprint — within
+  `FOOTPRINT_MARGIN` of (0..2w, 0..2h, 0..3). Parts are allowed
+  outside it (centered walls, roof overhangs); the check only rejects
+  grossly misplaced data;
 - every `textureSlot` referenced by a part is declared in the
   object's `additionalProperties` (type `texture`);
 - parts do not overlap each other (touching faces are fine).
@@ -168,7 +266,9 @@ Converter math (per object, the genuinely bug-prone part):
 - converting a square placed at (x, y, z) equals converting at origin
   translated by (2x, 2y, 3z);
 - part count and total volume are unchanged by rotation;
-- rotated parts stay inside the footprint (square footprints only);
+- rotated parts stay within the same margin of the footprint (square
+  footprints only), i.e. rotation does not move geometry away from its
+  square;
 - texture slots resolve from additionalProperties; missing values
   resolve to None rather than failing.
 
@@ -204,8 +304,9 @@ worth adding together with the glTF exporter.
   (Box: rotate/translate/intersect), `ObjectGeometry.py` (parses the
   catalog `geometry` field), `MapToPrimitives.py` (map square →
   placed, rotated, texture-resolved world boxes; owns `SQUARE_SIZE`
-  and `FLOOR_HEIGHT`). Wall and Corner carry geometry in their
-  `object.json`. Invariant tests:
+  and `FLOOR_HEIGHT`, and `FOOTPRINT_MARGIN`). Wall and Corner carry
+  geometry in their `object.json`, centered on the grid line.
+  Invariant tests:
   `python3 -m unittest discover -s tests` (no Qt needed).
 - **3D viewer** (`modules/Viewer3D/`): `SceneBuilder.py` turns a map
   model into boxes (skips objects without geometry, adds a thin ground
@@ -220,11 +321,14 @@ worth adding together with the glTF exporter.
 
 ## Next steps
 
-1. **Textures in the viewer.** QOpenGLTexture from the texture catalog
+1. **Corner filler object.** Two catalog entries (flush 0.1 and
+   protruding 0.2, see above), placed by hand. Name still to be
+   decided — it is also a free-standing post, so not corner-specific.
+2. **Textures in the viewer.** QOpenGLTexture from the texture catalog
    images, UVs tiled by world size (the UV rule above).
-2. **More construction objects.** Window, door, floor as multi-box
+3. **More construction objects.** Window, door, floor as multi-box
    compositions; terrain level.
-3. **glTF export.** Serialize the same box lists to .glb meshes + a
+4. **glTF export.** Serialize the same box lists to .glb meshes + a
    manifest; decide the texture embedding question (above).
-4. **Engine loaders.** Unity first: map file + manifest + glTF → scene
+5. **Engine loaders.** Unity first: map file + manifest + glTF → scene
    with material slots filled.
