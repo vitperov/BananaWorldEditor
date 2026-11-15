@@ -19,6 +19,7 @@ from modules.commonModels.TexturesCollection import TexturesCollection
 from modules.commonModels.LootContainersCollection import LootContainersCollection
 from modules.ApplicationSettings.ApplicationSettingsDlg import ApplicationSettingsDlg
 from modules.ApplicationSettings.ApplicationSettingsModel import ApplicationSettingsModel
+from modules.Geometry3D.GltfExport import exportCatalog
 
 class TtMapEditor(QMainWindow):
     BASE_TITLE = "BananaWorldEditor"
@@ -67,9 +68,17 @@ class TtMapEditor(QMainWindow):
         self.settingsButton.setIconSize(QSize(150, 150))  # Set icon size
         self.settingsButton.setStyleSheet("padding-left: 20px;")  # Space between icon and text
         
+        # Create Export button with a Qt standard icon (no custom picture)
+        self.exportButton = QPushButton("Export 3d objects")
+        self.exportButton.setFont(buttonFont)
+        self.exportButton.setIcon(self.style().standardIcon(QStyle.SP_DialogSaveButton))
+        self.exportButton.setIconSize(QSize(64, 64))
+        self.exportButton.setStyleSheet("padding-left: 20px;")
+
         # Add buttons to layout
         layout.addWidget(self.terrainButton)
         layout.addWidget(self.houseButton)
+        layout.addWidget(self.exportButton)
         layout.addWidget(self.settingsButton)
         
         self.centralWidget.setLayout(layout)
@@ -78,6 +87,7 @@ class TtMapEditor(QMainWindow):
         self.terrainButton.clicked.connect(self.showTerrainEditor)
         self.houseButton.clicked.connect(self.showHouseEditor)
         self.settingsButton.clicked.connect(self.showSettings)
+        self.exportButton.clicked.connect(self.export3DObjects)
         
         self.objCollection = None
         self.texturesCollection = None
@@ -108,7 +118,10 @@ class TtMapEditor(QMainWindow):
         unsavedMarker = "*" if self._mapModel.isDirty() else ""
         self.setWindowTitle("%s%s - %s" % (path or "Untitled", unsavedMarker, self.BASE_TITLE))
 
-    def showHouseEditor(self):
+    def _loadCatalogs(self):
+        """Object and texture catalogs: built-in content plus the external
+        directories from the settings (shared by the house editor and the
+        3D export)."""
         settings = ApplicationSettingsModel()
         nativeMapObjectsDir = os.path.join(os.path.dirname(__file__), 'mapObjects')
         externalMapObjectsDir = settings.getAdditionalMapObjectsDir()
@@ -116,7 +129,29 @@ class TtMapEditor(QMainWindow):
 
         nativeTexturesDir = os.path.join(os.path.dirname(__file__), 'textures')
         additionalTexturesDir = settings.getAdditionalTexturesDir()
-        self.texturesCollection = TexturesCollection([nativeTexturesDir, additionalTexturesDir])
+        texturesCollection = TexturesCollection([nativeTexturesDir, additionalTexturesDir])
+        return objCollection, texturesCollection
+
+    def export3DObjects(self):
+        """Export every catalog object with geometry as glTF (.glb) files,
+        plus textures and a manifest, into a directory the user picks."""
+        outDir = QFileDialog.getExistingDirectory(self, "Export 3D objects to directory")
+        if not outDir:
+            return
+        try:
+            objCollection, texturesCollection = self._loadCatalogs()
+            report = exportCatalog(objCollection, texturesCollection, outDir)
+        except Exception as error:
+            QMessageBox.critical(self, "Export 3D objects", "Export failed:\n%s" % error)
+            return
+        summary = "Exported %d objects and %d textures to\n%s" % (
+            len(report.objects), len(report.textures), outDir)
+        if report.skipped:
+            summary += "\n\nSkipped (mesh geometry is not exported yet): %s" % ", ".join(report.skipped)
+        QMessageBox.information(self, "Export 3D objects", summary)
+
+    def showHouseEditor(self):
+        objCollection, self.texturesCollection = self._loadCatalogs()
 
         nativeLootContainersDir = os.path.join(os.path.dirname(__file__), 'lootContainers')
         self.lootContainersCollection = LootContainersCollection([nativeLootContainersDir])
