@@ -21,7 +21,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "1b91177b-44c0-463f-8d8f-247264e1e8be"
+            "id": "1b91177b-44c0-463f-8d8f-247264e1e8be",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "0",
@@ -31,7 +38,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "98801135-6a78-4ac7-bd10-5f1f1bae31f0"
+            "id": "98801135-6a78-4ac7-bd10-5f1f1bae31f0",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -41,7 +52,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "a4fc6421-2a02-44b9-b4af-05c73352fb34"
+            "id": "a4fc6421-2a02-44b9-b4af-05c73352fb34",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -51,7 +66,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "d86f26f3-3169-4795-9bd7-46d88cfd0c7d"
+            "id": "d86f26f3-3169-4795-9bd7-46d88cfd0c7d",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "90",
@@ -61,7 +83,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "3b198022-3f74-4d47-9bac-dee4bf6743b7"
+            "id": "3b198022-3f74-4d47-9bac-dee4bf6743b7",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -81,7 +107,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "3e29303e-7065-4229-8836-eb8e2a098182"
+            "id": "3e29303e-7065-4229-8836-eb8e2a098182",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "180",
@@ -143,7 +173,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "901fd536-eb7e-454b-9d5d-d69d986ee86f"
+            "id": "901fd536-eb7e-454b-9d5d-d69d986ee86f",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -163,7 +197,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "ede85b39-3a50-4588-8edb-7710c4f14025"
+            "id": "ede85b39-3a50-4588-8edb-7710c4f14025",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -183,7 +221,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "25208f21-3cac-411b-b5fa-2361e0c6fdae"
+            "id": "25208f21-3cac-411b-b5fa-2361e0c6fdae",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "0",
@@ -219,7 +264,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "9ee653cd-9fc5-4c27-a249-76d56b28ada9"
+            "id": "9ee653cd-9fc5-4c27-a249-76d56b28ada9",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "0",
@@ -239,7 +291,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "225876d9-4fbe-4625-88f7-bd1565b63333"
+            "id": "225876d9-4fbe-4625-88f7-bd1565b63333",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -285,7 +341,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "fb2ffa2e-dace-4242-87ec-f9b4dcd2215d"
+            "id": "fb2ffa2e-dace-4242-87ec-f9b4dcd2215d",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -305,7 +365,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "1d4f06ac-625a-4216-88eb-25c580f5b450"
+            "id": "1d4f06ac-625a-4216-88eb-25c580f5b450",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "180",
@@ -315,7 +379,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "6db4f686-2f53-4e3e-914e-a7a4a89807f3"
+            "id": "6db4f686-2f53-4e3e-914e-a7a4a89807f3",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "180",
@@ -325,7 +396,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "55f33e54-24cb-47fc-af6c-02bd75e891aa"
+            "id": "55f33e54-24cb-47fc-af6c-02bd75e891aa",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "180",
@@ -335,7 +410,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "519a890f-ea7f-40f0-aa28-674349ed02e7"
+            "id": "519a890f-ea7f-40f0-aa28-674349ed02e7",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "180",
@@ -345,7 +424,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "af787a51-d668-4154-9081-50b00cd8574b"
+            "id": "af787a51-d668-4154-9081-50b00cd8574b",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "180",
@@ -355,7 +441,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "c4305111-c267-4c48-8eae-0ea27074a4fd"
+            "id": "c4305111-c267-4c48-8eae-0ea27074a4fd",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -636,7 +726,14 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "74df3050-9a41-422e-bd97-81cd6e357186"
+            "id": "74df3050-9a41-422e-bd97-81cd6e357186",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown",
+                "frameTexture": "white",
+                "sillTexture": "white",
+                "casingTexture": "darkBrown"
+            }
         },
         {
             "rotation": "0",
@@ -646,7 +743,11 @@
             "z": 0,
             "w": 1,
             "h": 1,
-            "id": "bc064c61-8b25-4876-b913-4aa0c25d61a1"
+            "id": "bc064c61-8b25-4876-b913-4aa0c25d61a1",
+            "additionalProperties": {
+                "externalTexture": "redBricks",
+                "internalTexture": "lightBrown"
+            }
         },
         {
             "rotation": "0",
@@ -668,8 +769,8 @@
             "h": 1,
             "id": "cfa15b30-0bb3-4e72-8ee2-f6a44a2a3b6e",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -682,8 +783,8 @@
             "h": 1,
             "id": "2acf1496-fa08-41d6-8a74-23f37338d0a4",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -696,8 +797,8 @@
             "h": 1,
             "id": "e88108de-a9a0-4cdb-b726-c2763ff9b94f",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -710,8 +811,8 @@
             "h": 1,
             "id": "2594cc81-cc43-4799-aaf2-914da16572e4",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -724,8 +825,8 @@
             "h": 1,
             "id": "78cafe5a-5fc0-4ab1-ade2-1718daa0c65e",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -748,8 +849,8 @@
             "h": 1,
             "id": "61875040-e72f-4e21-9dcd-3a7769c5f2a2",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -762,8 +863,8 @@
             "h": 1,
             "id": "ad33876a-a922-466a-9a44-278c74ba1780",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -776,8 +877,8 @@
             "h": 1,
             "id": "abd27806-c7e1-4772-a850-7140b75e2ed7",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -790,8 +891,8 @@
             "h": 1,
             "id": "6f37d5f8-dd51-4496-8352-51af2e3f791f",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -804,8 +905,8 @@
             "h": 1,
             "id": "b920062a-0e8e-4843-b92a-ee525682147b",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -818,8 +919,8 @@
             "h": 1,
             "id": "63a6c54d-4811-483c-849a-19927ff06a42",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -832,8 +933,8 @@
             "h": 1,
             "id": "4f6e0bd7-bb93-4600-ac5b-432b5bef06c3",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -846,8 +947,8 @@
             "h": 1,
             "id": "b8bb426b-37e1-4ac2-96ea-c4a2ab2d300c",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -860,8 +961,8 @@
             "h": 1,
             "id": "37793f23-66a0-4451-b36b-8c5157053d80",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -897,8 +998,8 @@
             "h": 1,
             "id": "54d941f7-b3cf-4690-9fef-fb2454dc0b40",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -911,8 +1012,8 @@
             "h": 1,
             "id": "2f78c6dc-2d6d-44bc-a45b-07d63e6c1cbc",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -925,8 +1026,8 @@
             "h": 1,
             "id": "f8636aff-110c-4ad1-bf3d-0ed9cb50da9d",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -939,8 +1040,8 @@
             "h": 1,
             "id": "3c4c7084-024f-49cb-89dd-a7736ee8e516",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -953,8 +1054,8 @@
             "h": 1,
             "id": "658e559f-856d-4de4-9e1c-bdabed4854fc",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
@@ -967,8 +1068,8 @@
             "h": 1,
             "id": "c5b5f399-18c6-4526-8599-aef33e4044c6",
             "additionalProperties": {
-                "externalTexture": "WoodenWall",
-                "internalTexture": "WoodenWall"
+                "externalTexture": "lightBrown",
+                "internalTexture": "lightBrown"
             }
         },
         {
