@@ -74,6 +74,8 @@ class TtMapEditor(QMainWindow):
         self.exportButton.setIcon(self.style().standardIcon(QStyle.SP_DialogSaveButton))
         self.exportButton.setIconSize(QSize(64, 64))
         self.exportButton.setStyleSheet("padding-left: 20px;")
+        # Same height as the buttons with the big custom pictures.
+        self.exportButton.setMinimumHeight(self.houseButton.sizeHint().height())
 
         # Add buttons to layout
         layout.addWidget(self.terrainButton)
