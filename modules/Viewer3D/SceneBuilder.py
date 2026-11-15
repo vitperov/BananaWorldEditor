@@ -1,14 +1,25 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2022-2026 Vitaly Perov
 #
-# Builds the 3D scene (a list of world-space boxes) for a map model.
+# Builds the 3D scene for a map model: a list of world-space boxes plus
+# the image file for every texture name those boxes reference.
 # Objects without primitive geometry are skipped: they are not
 # renderable yet (furniture etc. will arrive as imported meshes).
 
-from typing import List
+from typing import Dict, List, Optional
 
 from modules.Geometry3D.Primitives import Box
 from modules.Geometry3D.MapToPrimitives import convertSquare, SQUARE_SIZE
+
+
+class Scene:
+    """boxes: world-space boxes; textureFiles: texture name -> image path
+    (None when the map names a texture the catalog does not have, so the
+    viewer can show a stand-in color instead of failing)."""
+
+    def __init__(self, boxes: List[Box], textureFiles: Dict[str, Optional[str]]):
+        self.boxes = boxes
+        self.textureFiles = textureFiles
 
 
 def buildMapBoxes(mapModel) -> List[Box]:
@@ -40,3 +51,24 @@ def buildMapBoxes(mapModel) -> List[Box]:
                                0.1)))
 
     return boxes
+
+
+def resolveTextureFiles(boxes: List[Box], texturesCollection) -> Dict[str, Optional[str]]:
+    """Image path for every texture name the boxes reference.
+
+    Unknown names (and every name when the map has no texture catalog)
+    map to None rather than being dropped, so callers can tell "texture
+    not set" from "texture set but missing from the catalog".
+    """
+    files = {}
+    for box in boxes:
+        if box.texture and box.texture not in files:
+            files[box.texture] = (texturesCollection.getTextureFile(box.texture)
+                                  if texturesCollection is not None else None)
+    return files
+
+
+def buildScene(mapModel) -> Scene:
+    boxes = buildMapBoxes(mapModel)
+    textureFiles = resolveTextureFiles(boxes, mapModel.getTexturesCollection())
+    return Scene(boxes, textureFiles)

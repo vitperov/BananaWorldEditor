@@ -2,9 +2,11 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 #
 # Non-modal 3D view of a house map. Pure PyQt5 OpenGL (QOpenGLWidget +
-# QOpenGLShaderProgram + QMatrix4x4), no extra dependencies. Boxes are
-# flat-colored by their resolved texture name for now; real textures
-# come later (see PLAN-viewer.md).
+# QOpenGLShaderProgram + QOpenGLTexture + QMatrix4x4), no extra
+# dependencies. Boxes are textured from the texture catalog, tiled by
+# world size (UVs come from Geometry3D.BoxFaces, shared with the
+# exporters). Boxes whose texture is unset or missing from the catalog
+# fall back to a flat color so the scene still renders.
 
 import colorsys
 import hashlib
@@ -12,10 +14,12 @@ import math
 import struct
 
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import (QMatrix4x4, QOpenGLBuffer, QOpenGLShader,
-                         QOpenGLShaderProgram, QOpenGLVersionProfile,
-                         QVector3D)
+from PyQt5.QtGui import (QImage, QMatrix4x4, QOpenGLBuffer, QOpenGLShader,
+                         QOpenGLShaderProgram, QOpenGLTexture,
+                         QOpenGLVersionProfile, QVector3D)
 from PyQt5.QtWidgets import QOpenGLWidget, QVBoxLayout, QWidget
+
+from modules.Geometry3D.BoxFaces import boxFaces, Face
 
 # OpenGL constants (PyQt5 exposes functions via versionFunctions(), the
 # constants are mirrored here to avoid depending on its attribute set).
@@ -25,33 +29,40 @@ GL_DEPTH_BUFFER_BIT = 0x0100
 GL_TRIANGLES = 0x0004
 GL_FLOAT = 0x1406
 
-FLOATS_PER_VERTEX = 9  # position(3) + normal(3) + color(3)
+FLOATS_PER_VERTEX = 8  # position(3) + normal(3) + uv(2)
 STRIDE = FLOATS_PER_VERTEX * 4
+VERTEX_ATTRIBUTES = (('position', 0, 3), ('normal', 12, 3), ('uv', 24, 2))
 
 VERTEX_SHADER = """
 attribute vec3 position;
 attribute vec3 normal;
-attribute vec3 color;
+attribute vec2 uv;
 uniform mat4 mvp;
 varying vec3 vNormal;
-varying vec3 vColor;
+varying vec2 vUV;
 void main() {
     gl_Position = mvp * vec4(position, 1.0);
     vNormal = normal;
-    vColor = color;
+    vUV = uv;
 }
 """
 
+# One draw call per batch: a batch is either textured (sampler bound,
+# useTexture = 1) or a flat color (useTexture = 0), both lit the same way.
 FRAGMENT_SHADER = """
+uniform sampler2D tex;
+uniform int useTexture;
+uniform vec3 color;
 varying vec3 vNormal;
-varying vec3 vColor;
+varying vec2 vUV;
 void main() {
+    vec3 base = useTexture != 0 ? texture2D(tex, vUV).rgb : color;
     vec3 lightDir = normalize(vec3(0.4, 0.25, 1.0));
     float diffuse = max(dot(normalize(vNormal), lightDir), 0.0);
-    // abs() lights both winding directions; no face culling is used.
+    // Light both winding directions; no face culling is used.
     float back = max(dot(normalize(vNormal), -lightDir), 0.0);
     float light = 0.45 + 0.55 * max(diffuse, 0.3 * back);
-    gl_FragColor = vec4(vColor * light, 1.0);
+    gl_FragColor = vec4(base * light, 1.0);
 }
 """
 
@@ -68,26 +79,76 @@ def colorForTexture(textureName):
     return colorsys.hls_to_rgb(hue, 0.6, 0.45)
 
 
-def boxTriangles(box, color):
-    """36 vertices (12 triangles) with outward normals and a flat color."""
-    x0, y0, z0 = box.origin
-    x1, y1, z1 = box.maxCorner()
-    faces = [
-        # (normal, four corners counter-clockwise seen from outside)
-        ((-1, 0, 0), [(x0, y0, z0), (x0, y0, z1), (x0, y1, z1), (x0, y1, z0)]),
-        ((+1, 0, 0), [(x1, y0, z0), (x1, y1, z0), (x1, y1, z1), (x1, y0, z1)]),
-        ((0, -1, 0), [(x0, y0, z0), (x1, y0, z0), (x1, y0, z1), (x0, y0, z1)]),
-        ((0, +1, 0), [(x0, y1, z0), (x0, y1, z1), (x1, y1, z1), (x1, y1, z0)]),
-        ((0, 0, -1), [(x0, y0, z0), (x0, y1, z0), (x1, y1, z0), (x1, y0, z0)]),
-        ((0, 0, +1), [(x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1)]),
-    ]
+def boxTriangles(box):
+    """36 vertices (12 triangles): position, outward normal, world UV."""
     data = []
-    for normal, corners in faces:
-        for index in (0, 1, 2, 0, 2, 3):
-            data.extend(corners[index])
-            data.extend(normal)
-            data.extend(color)
+    for face in boxFaces(box):
+        for index in Face.TRIANGLE_INDICES:
+            data.extend(face.corners[index])
+            data.extend(face.normal)
+            data.extend(face.uvs[index])
     return data
+
+
+class Batch:
+    """A contiguous vertex range drawn with one texture (or one color).
+
+    textureFile is None for flat-colored batches; color is the fallback
+    used when textureFile is None or its image cannot be loaded.
+    """
+
+    def __init__(self, textureFile, color, first, count):
+        self.textureFile = textureFile
+        self.color = color
+        self.first = first
+        self.count = count
+
+
+def buildBatches(boxes, textureFiles):
+    """Group boxes by texture file / fallback color into draw batches.
+
+    Returns (flat float list, batches). Boxes with no texture slot (the
+    ground) take GROUND_COLOR; an unset texture property takes
+    UNTEXTURED_COLOR; a texture name without a catalog image keeps the
+    stable hash color so a missing texture stays recognizable.
+    """
+    groups = {}
+    for box in boxes:
+        if box.textureSlot is None:
+            key = (None, GROUND_COLOR)
+        else:
+            key = (textureFiles.get(box.texture), colorForTexture(box.texture))
+        groups.setdefault(key, []).append(box)
+
+    data = []
+    batches = []
+    for (textureFile, color), groupBoxes in groups.items():
+        first = len(data) // FLOATS_PER_VERTEX
+        for box in groupBoxes:
+            data.extend(boxTriangles(box))
+        batches.append(Batch(textureFile, color, first,
+                             len(data) // FLOATS_PER_VERTEX - first))
+    return data, batches
+
+
+def loadTexture(imageFile):
+    """Create a tiling, mipmapped QOpenGLTexture from an image file.
+
+    Needs a current GL context. Returns None when the image cannot be
+    read, so the caller can fall back to a flat color.
+    """
+    image = QImage(imageFile)
+    if image.isNull():
+        return None
+    # QImage rows run top-down, GL texture rows bottom-up; mirroring puts
+    # the image's bottom row at v = 0, i.e. on the floor for wall faces.
+    image = image.convertToFormat(QImage.Format_RGBA8888).mirrored()
+    texture = QOpenGLTexture(image, QOpenGLTexture.GenerateMipMaps)
+    texture.setWrapMode(QOpenGLTexture.Repeat)
+    texture.setMinificationFilter(QOpenGLTexture.LinearMipMapLinear)
+    texture.setMagnificationFilter(QOpenGLTexture.Linear)
+    texture.setMaximumAnisotropy(8.0)
+    return texture
 
 
 class HouseGLWidget(QOpenGLWidget):
@@ -103,6 +164,12 @@ class HouseGLWidget(QOpenGLWidget):
         self._vbo = None
         self._vertexData = b''
         self._vertexCount = 0
+        self._batches = []
+        # Texture file -> QOpenGLTexture, created lazily inside paintGL
+        # (the only place the context is guaranteed current). A file
+        # that failed to load is cached as None so it is not retried on
+        # every frame.
+        self._textures = {}
         self._dirty = False
         self._aspect = 1.0
 
@@ -113,14 +180,9 @@ class HouseGLWidget(QOpenGLWidget):
         self._elevationDeg = 35.0
         self._lastMousePos = None
 
-    def setBoxes(self, boxes):
-        data = []
-        for box in boxes:
-            if box.textureSlot is None:
-                color = GROUND_COLOR
-            else:
-                color = colorForTexture(box.texture)
-            data.extend(boxTriangles(box, color))
+    def setScene(self, boxes, textureFiles):
+        """Replace the scene: world boxes plus texture name -> image path."""
+        data, self._batches = buildBatches(boxes, textureFiles)
         self._vertexCount = len(data) // FLOATS_PER_VERTEX
         self._vertexData = struct.pack(f'{len(data)}f', *data)
         self._dirty = True
@@ -178,16 +240,37 @@ class HouseGLWidget(QOpenGLWidget):
 
         self._program.bind()
         self._program.setUniformValue('mvp', self._mvpMatrix())
-        for name, offset in (('position', 0), ('normal', 12), ('color', 24)):
+        self._program.setUniformValue('tex', 0)
+        for name, offset, size in VERTEX_ATTRIBUTES:
             self._program.enableAttributeArray(name)
-            self._program.setAttributeBuffer(name, GL_FLOAT, offset, 3, STRIDE)
+            self._program.setAttributeBuffer(name, GL_FLOAT, offset, size, STRIDE)
 
-        self._gl.glDrawArrays(GL_TRIANGLES, 0, self._vertexCount)
+        for batch in self._batches:
+            texture = self._textureFor(batch.textureFile)
+            if texture is not None:
+                texture.bind(0)
+                self._program.setUniformValue('useTexture', 1)
+            else:
+                self._program.setUniformValue('useTexture', 0)
+                self._program.setUniformValue('color', QVector3D(*batch.color))
+            self._gl.glDrawArrays(GL_TRIANGLES, batch.first, batch.count)
+            if texture is not None:
+                texture.release(0)
 
-        for name in ('position', 'normal', 'color'):
+        for name, _, _ in VERTEX_ATTRIBUTES:
             self._program.disableAttributeArray(name)
         self._program.release()
         self._vbo.release()
+
+    def _textureFor(self, imageFile):
+        if imageFile is None:
+            return None
+        if imageFile not in self._textures:
+            texture = loadTexture(imageFile)
+            if texture is None:
+                print(f"3D view: cannot load texture image {imageFile}")
+            self._textures[imageFile] = texture
+        return self._textures[imageFile]
 
     def _cameraEye(self):
         azimuth = math.radians(self._azimuthDeg)
@@ -253,5 +336,6 @@ class Viewer3DWindow(QWidget):
         layout.addWidget(self._glWidget)
         self.setLayout(layout)
 
-    def setBoxes(self, boxes):
-        self._glWidget.setBoxes(boxes)
+    def setScene(self, scene):
+        """Show a SceneBuilder.Scene (boxes + texture image paths)."""
+        self._glWidget.setScene(scene.boxes, scene.textureFiles)

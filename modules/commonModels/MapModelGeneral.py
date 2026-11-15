@@ -171,6 +171,12 @@ class MapModelGeneral(QObject):
         """Public read-only accessor for the object catalog, so callers
         (3D viewer) do not reach into _objCollection."""
         return self._objCollection
+
+    def getTexturesCollection(self):
+        """Public read-only accessor for the texture catalog (None for
+        maps without one, e.g. terrain), so callers (3D viewer) do not
+        reach into _texturesCollection."""
+        return self._texturesCollection
         
     def getAllObjectOfType(self, modelType, selectionRange=None):
         result = []

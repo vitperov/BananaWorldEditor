@@ -2,18 +2,29 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 import os
 import json
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class TextureObject:
-    def __init__(self, name: str, iconFile: str):
+    """One texture catalog entry (textures/<name>/object.json).
+
+    iconFile is the small preview shown in the editor's texture picker.
+    textureFile is the optional full-resolution, tileable image used by
+    the 3D viewer and the exporters; when the catalog entry does not
+    declare one, the icon doubles as the texture.
+    """
+
+    def __init__(self, name: str, iconFile: str, textureFile: Optional[str] = None):
         self.name = name
         self.iconFile = iconFile
+        self.textureFile = textureFile if textureFile else iconFile
 
     @classmethod
     def from_json(cls, json_data: Dict, base_path: str):
+        textureFile = json_data.get('textureFile')
         return cls(
             name=json_data.get('name', ''),
             iconFile=os.path.join(base_path, json_data.get('iconFile', '')),
+            textureFile=os.path.join(base_path, textureFile) if textureFile else None,
         )
 
 class TexturesCollection:
@@ -38,6 +49,14 @@ class TexturesCollection:
         texture_object = self.textures.get(texname)
         if texture_object:
             return texture_object.iconFile
+        else:
+            return None
+
+    def getTextureFile(self, texname: str) -> Optional[str]:
+        """Image file to texture 3D geometry with, or None for an unknown name."""
+        texture_object = self.textures.get(texname)
+        if texture_object:
+            return texture_object.textureFile
         else:
             return None
         

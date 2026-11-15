@@ -14,7 +14,7 @@ from PyQt5.QtCore import *
 
 from modules.commonModels.EditorHelper import EditorHelper
 from modules.Viewer3D.Viewer3DWindow import Viewer3DWindow
-from modules.Viewer3D.SceneBuilder import buildMapBoxes
+from modules.Viewer3D.SceneBuilder import buildScene
 
 class HouseController:
     def __init__(self, view, houseModel):
@@ -84,7 +84,7 @@ class HouseController:
         # click so it reflects the current map state.
         if self._viewer3DWindow is None:
             self._viewer3DWindow = Viewer3DWindow(self._view)
-        self._viewer3DWindow.setBoxes(buildMapBoxes(self._houseModel))
+        self._viewer3DWindow.setScene(buildScene(self._houseModel))
         self._viewer3DWindow.show()
         self._viewer3DWindow.raise_()
         self._viewer3DWindow.activateWindow()
