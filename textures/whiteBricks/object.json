@@ -1,4 +1,5 @@
 {
     "name": "whiteBricks",
-    "iconFile": "icon.png"
+    "iconFile": "icon.png",
+    "textureFile": "texture.png"
 }
