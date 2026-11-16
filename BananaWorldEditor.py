@@ -20,6 +20,7 @@ from modules.commonModels.LootContainersCollection import LootContainersCollecti
 from modules.ApplicationSettings.ApplicationSettingsDlg import ApplicationSettingsDlg
 from modules.ApplicationSettings.ApplicationSettingsModel import ApplicationSettingsModel
 from modules.Geometry3D.GltfExport import exportCatalog
+from modules.TextureEditor.TextureEditorWindow import TextureEditorWindow
 
 class TtMapEditor(QMainWindow):
     BASE_TITLE = "BananaWorldEditor"
@@ -77,9 +78,18 @@ class TtMapEditor(QMainWindow):
         # Same height as the buttons with the big custom pictures.
         self.exportButton.setMinimumHeight(self.houseButton.sizeHint().height())
 
+        # Create Texture Editor button with a Qt standard icon
+        self.textureEditorButton = QPushButton("Texture Editor")
+        self.textureEditorButton.setFont(buttonFont)
+        self.textureEditorButton.setIcon(self.style().standardIcon(QStyle.SP_FileDialogContentsView))
+        self.textureEditorButton.setIconSize(QSize(64, 64))
+        self.textureEditorButton.setStyleSheet("padding-left: 20px;")
+        self.textureEditorButton.setMinimumHeight(self.houseButton.sizeHint().height())
+
         # Add buttons to layout
         layout.addWidget(self.terrainButton)
         layout.addWidget(self.houseButton)
+        layout.addWidget(self.textureEditorButton)
         layout.addWidget(self.exportButton)
         layout.addWidget(self.settingsButton)
         
@@ -90,6 +100,7 @@ class TtMapEditor(QMainWindow):
         self.houseButton.clicked.connect(self.showHouseEditor)
         self.settingsButton.clicked.connect(self.showSettings)
         self.exportButton.clicked.connect(self.export3DObjects)
+        self.textureEditorButton.clicked.connect(self.showTextureEditor)
         
         self.objCollection = None
         self.texturesCollection = None
@@ -151,6 +162,11 @@ class TtMapEditor(QMainWindow):
         if report.skipped:
             summary += "\n\nSkipped (mesh geometry is not exported yet): %s" % ", ".join(report.skipped)
         QMessageBox.information(self, "Export 3D objects", summary)
+
+    def showTextureEditor(self):
+        _, texturesCollection = self._loadCatalogs()
+        self._textureEditor = TextureEditorWindow(texturesCollection)
+        self._textureEditor.show()
 
     def showHouseEditor(self):
         objCollection, self.texturesCollection = self._loadCatalogs()
