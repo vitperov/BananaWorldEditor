@@ -22,6 +22,7 @@ sys.path.insert(0, REPO_ROOT)
 
 from modules.commonModels.ObjectsCollection import ObjectsCollection
 from modules.commonModels.TexturesCollection import TexturesCollection
+from modules.Geometry3D.MapToPrimitives import FOOTPRINT_MARGIN
 from modules.Geometry3D.GltfExport import (exportCatalog, unpackGlb, slotOrder,
                                            toGltfPosition, MANIFEST_NAME,
                                            COMPONENT_FLOAT, COMPONENT_UNSIGNED_SHORT,
@@ -181,7 +182,10 @@ class GltfExportInvariants(unittest.TestCase):
                 for n in normals:
                     self.assertAlmostEqual(dot(n, n), 1.0, places=5)
                 accessor = document['accessors'][primitive['attributes']['POSITION']]
-                self.assertGreaterEqual(accessor['min'][1], -1e-6, f"{obj.name}: below ground in glTF Y")
+                # Parts may hang slightly below their origin (the Floor's
+                # ceiling half), but never further than the gross-error margin.
+                self.assertGreaterEqual(accessor['min'][1], -FOOTPRINT_MARGIN - 1e-6,
+                                        f"{obj.name}: below ground in glTF Y")
 
     def test_uvs_are_flipped_into_gltf_convention(self):
         # glTF v = 0 is the image top: a point on the floor (editor z = 0)

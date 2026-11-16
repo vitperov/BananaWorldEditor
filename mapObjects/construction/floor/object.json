@@ -6,6 +6,27 @@
         {
             "type": "texture",
             "name": "internalTexture"
+        },
+        {
+            "type": "texture",
+            "name": "ceilingTexture"
         }
-    ]
+    ],
+    "geometry": {
+        "type": "primitives",
+        "parts": [
+            {
+                "shape": "box",
+                "origin": [0.0, 0.0, 0.0],
+                "size": [2.0, 2.0, 0.05],
+                "textureSlot": "internalTexture"
+            },
+            {
+                "shape": "box",
+                "origin": [0.0, 0.0, -0.05],
+                "size": [2.0, 2.0, 0.05],
+                "textureSlot": "ceilingTexture"
+            }
+        ]
+    }
 }
