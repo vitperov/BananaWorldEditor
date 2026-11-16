@@ -19,7 +19,7 @@ from PyQt5.QtGui import (QImage, QMatrix4x4, QOpenGLBuffer, QOpenGLShader,
                          QOpenGLVersionProfile, QVector3D)
 from PyQt5.QtWidgets import QOpenGLWidget, QVBoxLayout, QWidget
 
-from modules.Geometry3D.BoxFaces import boxFaces, Face
+from modules.Geometry3D.BoxFaces import partFaces
 
 # OpenGL constants (PyQt5 exposes functions via versionFunctions(), the
 # constants are mirrored here to avoid depending on its attribute set).
@@ -80,10 +80,10 @@ def colorForTexture(textureName):
 
 
 def boxTriangles(box):
-    """36 vertices (12 triangles): position, outward normal, world UV."""
+    """Triangle vertices of one part: position, outward normal, world UV."""
     data = []
-    for face in boxFaces(box):
-        for index in Face.TRIANGLE_INDICES:
+    for face in partFaces(box):
+        for index in face.triangleIndices:
             data.extend(face.corners[index])
             data.extend(face.normal)
             data.extend(face.uvs[index])

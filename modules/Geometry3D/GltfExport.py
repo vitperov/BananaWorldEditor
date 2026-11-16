@@ -32,7 +32,7 @@ import shutil
 import struct
 from typing import Dict, List, Optional, Tuple
 
-from modules.Geometry3D.BoxFaces import boxFaces, Face
+from modules.Geometry3D.BoxFaces import partFaces
 from modules.Geometry3D.MapToPrimitives import SQUARE_SIZE, FLOOR_HEIGHT
 from modules.Geometry3D.ObjectGeometry import ObjectGeometry
 
@@ -127,14 +127,14 @@ def _primitiveData(parts):
     """Flatten the boxes of one slot into glTF-space vertex arrays."""
     positions, normals, uvs, indices = [], [], [], []
     for box in parts:
-        for face in boxFaces(box):
+        for face in partFaces(box):
             base = len(positions)
             normal = toGltfPosition(face.normal)
             for corner, uv in zip(face.corners, face.uvs):
                 positions.append(toGltfPosition(corner))
                 normals.append(normal)
                 uvs.append(toGltfUV(uv))
-            indices.extend(base + i for i in Face.TRIANGLE_INDICES)
+            indices.extend(base + i for i in face.triangleIndices)
     return positions, normals, uvs, indices
 
 

@@ -76,3 +76,124 @@ class Box:
     def __repr__(self):
         return (f"Box(origin={self.origin}, size={self.size}, "
                 f"textureSlot={self.textureSlot!r}, texture={self.texture!r})")
+
+
+# Footprint corners of a prism, in cyclic order. Heights in `bottom`
+# and `top` follow this order.
+#   0: (x0, y0)   1: (x1, y0)   2: (x1, y1)   3: (x0, y1)
+PRISM_CORNERS = ((0, 0), (1, 0), (1, 1), (0, 1))
+
+
+class Prism(Box):
+    """Vertical prism over the box footprint with a height per corner.
+
+    `bottom` and `top` give, for each footprint corner (PRISM_CORNERS
+    order), the z of the bottom and top surface in meters above the
+    origin, with 0 <= bottom[i] <= top[i] <= size z. All of box, roof
+    wedge, hip/valley corner and sloped constant-thickness slab are
+    spellings of this one shape:
+        bottom (0,0,0,0) top (3,3,3,3)          box
+        bottom (0,0,0,0) top (0,0,3,3)          wedge rising toward +y
+        bottom (0,0,0,0) top (0,0,3,0)          hip, high corner (x1,y1)
+        bottom (0,0,1,1) top (0.1,0.1,1.1,1.1)  sloped roof slab
+
+    A non-planar bottom/top quad is split into two triangles along a
+    diagonal ('02' or '13'). By default the crease bulges outward
+    (ridges and hips); set topCrease/bottomCrease to force the other
+    diagonal for concave surfaces (roof valleys).
+    """
+
+    CREASES = ('02', '13')
+
+    def __init__(self, origin, size,
+                 bottom, top,
+                 topCrease: Optional[str] = None,
+                 bottomCrease: Optional[str] = None,
+                 textureSlot: Optional[str] = None,
+                 texture: Optional[str] = None):
+        super().__init__(origin, size, textureSlot, texture)
+        self.bottom = tuple(float(h) for h in bottom)
+        self.top = tuple(float(h) for h in top)
+        if len(self.bottom) != 4 or len(self.top) != 4:
+            raise ValueError("Prism needs 4 bottom and 4 top heights")
+        for b, t in zip(self.bottom, self.top):
+            if not (-EPSILON <= b <= t <= self.size[2] + EPSILON):
+                raise ValueError(
+                    f"Prism heights must satisfy 0 <= bottom <= top <= "
+                    f"{self.size[2]}: {self.bottom} {self.top}")
+        for crease in (topCrease, bottomCrease):
+            if crease is not None and crease not in self.CREASES:
+                raise ValueError(f"Bad crease: {crease!r}")
+        self.topCrease = topCrease
+        self.bottomCrease = bottomCrease
+
+    @staticmethod
+    def _crease(heights, explicit: Optional[str],
+                outwardUp: bool) -> Optional[str]:
+        """Diagonal to split along, or None for a planar quad."""
+        defect = heights[0] + heights[2] - heights[1] - heights[3]
+        if abs(defect) <= EPSILON:
+            return None
+        if explicit is not None:
+            return explicit
+        # Default: the crease line bulges toward the outside of the
+        # solid (up for the top surface, down for the bottom).
+        bulgesUp = defect > 0
+        return '02' if bulgesUp == outwardUp else '13'
+
+    def resolvedTopCrease(self) -> Optional[str]:
+        return self._crease(self.top, self.topCrease, True)
+
+    def resolvedBottomCrease(self) -> Optional[str]:
+        return self._crease(self.bottom, self.bottomCrease, False)
+
+    @staticmethod
+    def _surfaceVolume(heights, crease) -> float:
+        """Mean height over the unit footprint of one surface."""
+        if crease is None:
+            return sum(heights) / 4.0
+        i = 0 if crease == '02' else 1
+        tri1 = (heights[i], heights[(i + 1) % 4], heights[(i + 2) % 4])
+        tri2 = (heights[i], heights[(i + 2) % 4], heights[(i + 3) % 4])
+        return (sum(tri1) + sum(tri2)) / 6.0
+
+    def volume(self) -> float:
+        area = self.size[0] * self.size[1]
+        return area * (self._surfaceVolume(self.top, self.resolvedTopCrease())
+                       - self._surfaceVolume(self.bottom,
+                                             self.resolvedBottomCrease()))
+
+    @staticmethod
+    def _rotatedCrease(crease: Optional[str]) -> Optional[str]:
+        if crease is None:
+            return None
+        return '13' if crease == '02' else '02'
+
+    def translated(self, offset) -> 'Prism':
+        box = super().translated(offset)
+        return Prism(box.origin, box.size, self.bottom, self.top,
+                     self.topCrease, self.bottomCrease,
+                     self.textureSlot, self.texture)
+
+    def rotated90(self, cx: float, cy: float) -> 'Prism':
+        # Footprint corner i moves to corner position (i + 1) % 4.
+        box = super().rotated90(cx, cy)
+        shift = lambda h: (h[3], h[0], h[1], h[2])
+        return Prism(box.origin, box.size, shift(self.bottom), shift(self.top),
+                     self._rotatedCrease(self.topCrease),
+                     self._rotatedCrease(self.bottomCrease),
+                     self.textureSlot, self.texture)
+
+    def approxEquals(self, other: 'Box', eps: float = EPSILON) -> bool:
+        return (isinstance(other, Prism)
+                and all(abs(a - b) <= eps
+                        for a, b in zip(self.bottom + self.top,
+                                        other.bottom + other.top))
+                and self.resolvedTopCrease() == other.resolvedTopCrease()
+                and self.resolvedBottomCrease() == other.resolvedBottomCrease()
+                and super().approxEquals(other, eps))
+
+    def __repr__(self):
+        return (f"Prism(origin={self.origin}, size={self.size}, "
+                f"bottom={self.bottom}, top={self.top}, "
+                f"textureSlot={self.textureSlot!r}, texture={self.texture!r})")
