@@ -98,14 +98,42 @@ One part is one box with one texture slot. No per-face textures.
   at rotation 0.
 - Wall: 2 slabs. Corner: 4 boxes (two L-legs, each with both slabs).
 - Window: the two slabs cut around a 1.2 x 1.2 opening (sill at 0.9,
-  head at 2.1), a frame, an external casing and an internal windowsill
-  that spans the whole square so neighbouring windows share one sill.
+  head at 2.1), a frame that spans the whole wall thickness (so no
+  wall texture shows in the reveal) with a thin cross flush with its
+  external face, an external casing and an internal windowsill that
+  spans the whole square so neighbouring windows share one sill.
   Slots: `internalTexture`, `externalTexture`, `frameTexture`,
-  `casingTexture`, `sillTexture`. No glass. The Door will reuse the
-  same slot names.
+  `casingTexture`, `sillTexture`. No glass.
+- Door: the two slabs cut around a 1.0 x 2.1 opening, a frame that
+  spans the whole wall thickness (so no wall texture shows in the
+  reveal), a closed leaf, a casing on each side and one rectangular
+  knob box on each side. Slots: `internalTexture`, `externalTexture`,
+  `doorTexture` (leaf and frame), `casingTexture` (outside),
+  `internalCasingTexture`, `knobTexture`. The leaf is always drawn
+  closed; `doorState` is for the game, not for the geometry.
+- Floor: two 0.05 m slabs (half the wall thickness in total) meeting
+  at z = 0: the upper one keeps the pre-geometry `internalTexture`
+  slot so existing maps stay valid, the lower one is the ceiling of
+  the floor below (`ceilingTexture`).
 - Mesh form: `{"type": "mesh", "file": "Sofa.glb"}`.
-- New shapes (wedge, cylinder) can be added later without changing
-  this envelope.
+- Second shape, "prism" (same envelope: origin + size = bounding
+  box): vertical prism over the footprint; "bottom" and "top" give a
+  height per footprint corner in the cyclic order (x0,y0), (x1,y0),
+  (x1,y1), (x0,y1), 0 <= bottom <= top <= size z. Spells box, roof
+  wedge, hip/valley corner and sloped slab (examples in
+  Primitives.Prism). Roofs: two thin sloped slabs with separate
+  tiles/ceiling texture slots, like walls.
+  - A non-planar bottom/top splits into two triangles along a
+    diagonal. Default: the crease bulges outward (ridges, hips);
+    "topCrease"/"bottomCrease" ("02" or "13") force the other
+    diagonal for concave surfaces (roof valleys).
+  - Side faces are always vertical; where bottom meets top they
+    degenerate to a triangle or vanish (a wedge's eave edge).
+  - Sloped faces tile with u horizontal along the eave and v up the
+    slope by surface distance, so courses stay level and continue
+    across squares (BoxFaces.faceTangents).
+  - Part overlap checks use bounding boxes, so sloped parts still
+    must not share bounding-box volume within one object.
 - Cost is not a concern: a whole house is under a thousand triangles,
   and draw calls depend on the number of texture slots, not boxes.
 
@@ -170,7 +198,7 @@ Run: `python3 -m unittest discover -s tests` (no Qt needed).
 
 ## Next steps
 
-1. More construction objects: Door, Floor; terrain objects.
+1. More construction objects: terrain objects.
 2. Engine loaders, Unity first: map file + manifest + glTF files to a
    scene with filled material slots. Settle embedded vs. external
    textures at the same time.
