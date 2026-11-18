@@ -9,7 +9,9 @@
 # Layout: texture list | preview column | seamless check. The preview
 # column holds the fixed-size texture preview and, under it, the
 # pipeline controls top-down in run order: "Pre-filters" (checkboxes,
-# the fixed run order is internal) then "Seamless algorithm". The
+# the fixed run order is internal) then "Seamless algorithm". Each
+# filter's user-facing hint (stored in the filter model) is a tooltip on
+# the checkbox and on an (i) button next to it; clicking (i) shows it. The
 # seamless check takes all remaining window space, so enlarging the
 # window enlarges the tiled picture.
 #
@@ -18,15 +20,17 @@
 # row. Changing an option mid-run lets the run finish, drops its
 # (now stale) result and starts one for the latest selection.
 
+import html
 import os
 
 import numpy as np
-from PyQt5.QtCore import Qt, QThread, pyqtSignal
+from PyQt5.QtCore import QPoint, Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
                              QHBoxLayout, QLabel, QListWidget,
                              QListWidgetItem, QMessageBox, QProgressBar,
-                             QPushButton, QSizePolicy, QVBoxLayout, QWidget)
+                             QPushButton, QSizePolicy, QStyle, QToolButton,
+                             QToolTip, QVBoxLayout, QWidget)
 
 from modules.TextureEditor.PreFilters import FILTERS
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
@@ -59,6 +63,29 @@ def arrayToImage(rgb: np.ndarray) -> QImage:
     # copy(): the QImage must own its pixels, not borrow the array's.
     return QImage(bgra.data, width, height, width * 4,
                   QImage.Format_RGB32).copy()
+
+
+def hintHtml(text: str) -> str:
+    """Rich text makes Qt word-wrap a long tooltip instead of showing
+    one very wide line."""
+    return "<p>%s</p>" % html.escape(text)
+
+
+class InfoButton(QToolButton):
+    """Small (i) icon next to an option: hovering shows its hint as a
+    tooltip, clicking shows it at once."""
+
+    def __init__(self, text: str, parent=None):
+        super().__init__(parent)
+        self.setIcon(self.style().standardIcon(QStyle.SP_MessageBoxInformation))
+        self.setAutoRaise(True)
+        self.setCursor(Qt.WhatsThisCursor)
+        self.setToolTip(hintHtml(text))
+        self.clicked.connect(self._showHint)
+
+    def _showHint(self):
+        QToolTip.showText(self.mapToGlobal(QPoint(0, self.height())),
+                          self.toolTip(), self)
 
 
 class PipelineThread(QThread):
@@ -143,7 +170,7 @@ class TextureEditorWindow(QWidget):
         self._filterBoxes = []
         for prefilter in FILTERS:
             box = QCheckBox(prefilter.name)
-            box.setToolTip(prefilter.description)
+            box.setToolTip(hintHtml(prefilter.description))
             box.toggled.connect(
                 lambda on, name=prefilter.name: self._toggleFilter(name, on))
             self._filterBoxes.append(box)
@@ -207,24 +234,13 @@ class TextureEditorWindow(QWidget):
         group = QGroupBox("Pre-filters")
         column = QVBoxLayout()
         for box, prefilter in zip(self._filterBoxes, FILTERS):
-            column.addWidget(box)
-            column.addWidget(self._descriptionLabel(prefilter.description))
+            row = QHBoxLayout()
+            row.addWidget(box)
+            row.addWidget(InfoButton(prefilter.description))
+            row.addStretch(1)
+            column.addLayout(row)
         group.setLayout(column)
         return group
-
-    def _descriptionLabel(self, text) -> QLabel:
-        """Short guide under an option, in smaller grey text, indented
-        to line up with the checkbox label."""
-        label = QLabel(text)
-        label.setWordWrap(True)
-        # Fixed width: a word-wrapped label of free width makes Qt
-        # underestimate its height and the column overlaps the preview.
-        label.setFixedWidth(CANVAS_SIZE)
-        label.setContentsMargins(20, 0, 0, 0)
-        font = label.font()
-        font.setPointSizeF(font.pointSizeF() * 0.9)
-        label.setFont(font)
-        return label
 
     def _algorithmGroup(self) -> QGroupBox:
         group = QGroupBox("Seamless algorithm")
