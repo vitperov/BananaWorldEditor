@@ -273,9 +273,16 @@ class TextureEditorWindow(QWidget):
         self._model.open(imageToArray(image), path)
         self._resetControls()
         self._saveButton.setEnabled(True)
-        self._fileLabel.setText(os.path.relpath(path))
         self._fileLabel.setToolTip(os.path.abspath(path))
         self._showImage(arrayToImage(self._model.current))
+
+    def _fileText(self, image: QImage) -> str:
+        """Path and size; the new size too when a filter cropped it."""
+        height, width = self._model.original.shape[:2]
+        text = "%s   %d x %d" % (os.path.relpath(self._model.filePath), width, height)
+        if (image.width(), image.height()) != (width, height):
+            text += "  ->  %d x %d" % (image.width(), image.height())
+        return text
 
     def _applyAlgorithm(self, name):
         self._model.setAlgorithm(name)
@@ -348,6 +355,7 @@ class TextureEditorWindow(QWidget):
             widget.blockSignals(False)
 
     def _showImage(self, image: QImage):
+        self._fileLabel.setText(self._fileText(image))
         pixmap = QPixmap.fromImage(image)
         self._canvas.setPixmap(pixmap.scaled(
             CANVAS_SIZE, CANVAS_SIZE,
