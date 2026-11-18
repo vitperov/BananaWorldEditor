@@ -2,8 +2,10 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 #
 # Pre-filters: corrections applied to a texture before the seamless
-# algorithm. Same image format and contract as SeamlessAlgorithms
-# ((height, width, 3) uint8 array, pure function, keeps size).
+# algorithm. Same image format as SeamlessAlgorithms ((height, width, 3)
+# uint8 array) and pure functions, but a filter may change the size
+# (the crop does); the algorithms after it work on whatever size they
+# get.
 #
 # The user only toggles filters on or off. FILTERS is the fixed order
 # the enabled ones run in, so the order is never the user's concern.
@@ -12,7 +14,7 @@
 # words for a non-expert, saying which problem it fixes and what changes
 # to expect. The GUI only displays it.
 
-from typing import List
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -117,6 +119,160 @@ def quadraticSurface(array: np.ndarray) -> np.ndarray:
     return (basis @ coeffs).reshape(height, width, 3)
 
 
+def repeatScores(image: Image, axis: int) -> np.ndarray:
+    """How badly the picture matches itself shifted by d pixels along
+    axis, for every d in 0..length-1: mean squared channel difference
+    over the overlapping part. Low = the picture repeats at distance d.
+    Computed for all d at once from the autocorrelation (FFT) of every
+    line along the axis plus prefix sums of squares."""
+    lines = np.moveaxis(image, axis, -1).astype(np.float64)
+    lines = lines.reshape(-1, lines.shape[-1])
+    length = lines.shape[1]
+    n = 1 << int(np.ceil(np.log2(2 * length)))
+    spectrum = np.fft.rfft(lines, n=n, axis=1)
+    correlation = np.fft.irfft(spectrum * np.conj(spectrum), n=n,
+                               axis=1)[:, :length].sum(axis=0)
+    prefix = np.concatenate([[0.0], np.cumsum((lines ** 2).sum(axis=0))])
+    d = np.arange(length)
+    squaredDiff = prefix[length - d] + (prefix[length] - prefix[d]) - 2.0 * correlation
+    count = (length - d) * lines.shape[0]
+    return np.maximum(squaredDiff, 0.0) / np.maximum(count, 1)
+
+
+def localMinima(values: np.ndarray) -> np.ndarray:
+    """Indices i with values[i-1] > values[i] <= values[i+1]."""
+    inner = (values[1:-1] < values[:-2]) & (values[1:-1] <= values[2:])
+    return np.nonzero(inner)[0] + 1
+
+
+def subpixelMinimum(values: np.ndarray, index: int) -> float:
+    """Position of the minimum of the parabola through the three
+    samples around a local minimum at index."""
+    if index < 1 or index + 1 >= len(values):
+        return float(index)
+    left, mid, right = values[index - 1], values[index], values[index + 1]
+    denominator = left - 2.0 * mid + right
+    if denominator <= 0:
+        return float(index)
+    return index + 0.5 * (left - right) / denominator
+
+
+class PeriodCrop:
+    """Crop to a whole number of pattern repeats along each axis.
+
+    Per axis: the repeat distance (period) is read off the self-match
+    curve (repeatScores), then the picture is cut to the largest whole
+    multiple of it that fits, at the offset where the cut edges match
+    best. Opposite edges then continue the pattern when tiled. Nothing
+    is cropped when no clear repeat is found or the size is already a
+    whole multiple. Never crops below half the size.
+
+    Period detection only trusts shifts that leave at least
+    MIN_OVERLAP of the picture to compare (short overlaps match by
+    chance inside flat areas). A valley counts as the pattern's repeat
+    only if it is nearly as deep as the deepest one: in a running bond
+    the one-row shift is a shallow valley (bricks half off) and the
+    two-row shift the deep one, and the crop must follow the deep one.
+    """
+
+    name = 'Crop to whole repeats'
+    description = (
+        "Use for bricks, tiles, planks or any regular pattern. Trims "
+        "the picture so it holds a whole number of repeats and the "
+        "pattern continues across the tile edge. The picture gets a bit "
+        "smaller (never below half). Nothing changes when no repeating "
+        "pattern is found.")
+
+    MIN_LENGTH = 16          # shorter axes are left alone
+    MIN_OVERLAP = 0.2        # fraction of length a trusted shift keeps
+    VALLEY_DEPTH = 0.6       # a valley is below this fraction of typical
+    DEEP_TOLERANCE = 0.15    # deep = within this fraction of the depth
+    # Misalignment (pixels) tolerated before a repeat is cut off: 1 px,
+    # or 2 px when the period is 40+ px. Below that the seam error is
+    # barely visible and a crop would cost a whole repeat (2 px short of
+    # six 171 px repeats would otherwise lose 171 px).
+    MAX_MISALIGNMENT = 2
+
+    def apply(self, pixels: Image) -> Image:
+        rows = self.cropRange(pixels, axis=0)
+        cols = self.cropRange(pixels, axis=1)
+        return pixels[rows[0]:rows[1], cols[0]:cols[1]]
+
+    def cropRange(self, pixels: Image, axis: int) -> Tuple[int, int]:
+        """(start, stop) to keep along axis; (0, length) = no crop."""
+        length = pixels.shape[axis]
+        if length < self.MIN_LENGTH:
+            return 0, length
+        scores = repeatScores(pixels, axis)
+        period = self.findPeriod(scores, length)
+        if period is None:
+            return 0, length
+        margin = min(self.MAX_MISALIGNMENT, max(1, int(round(0.05 * period))))
+        repeats = int((length + margin) // period)
+        cropLength = min(length, int(round(repeats * period)))
+        if length - cropLength <= margin:
+            return 0, length                       # already a whole multiple
+        cropLength = self.snapToMinimum(scores, cropLength, period)
+        start = self.bestOffset(pixels, axis, cropLength)
+        return start, start + cropLength
+
+    def findPeriod(self, scores: np.ndarray, length: int) -> Optional[float]:
+        """Repeat distance of the pattern, or None if there is none.
+        Refined to sub-pixel precision from the farthest trusted valley
+        that sits on a multiple of it."""
+        trusted = int(length * (1.0 - self.MIN_OVERLAP))
+        curve = scores[:trusted + 1]
+        typical = float(np.median(curve[2:]))
+        if typical <= 1e-6:
+            return None                            # flat picture
+        valleys = localMinima(curve)
+        valleys = valleys[(valleys >= 2) & (curve[valleys] <= self.VALLEY_DEPTH * typical)]
+        if len(valleys) == 0:
+            return None
+        deepest = float(curve[valleys].min())
+        deep = valleys[curve[valleys] <= deepest + self.DEEP_TOLERANCE * (typical - deepest)]
+        period = float(deep[0])
+        for position in deep[::-1]:
+            multiple = int(round(position / period))
+            if multiple >= 1 and abs(position / period - multiple) < 0.1:
+                return subpixelMinimum(curve, position) / multiple
+        return subpixelMinimum(curve, deep[0])
+
+    SNAP_GAIN = 0.75         # snap only if the minimum is below this * predicted
+
+    @classmethod
+    def snapToMinimum(cls, scores: np.ndarray, cropLength: int, period: float) -> int:
+        """Move the predicted crop length to the local minimum of the
+        self-match curve within +-period/8 (real periods are not whole
+        pixels), but only if that minimum is distinctly lower than the
+        score at the prediction: the spare part is short and may hold
+        only flat content, where the curve is noise and its minimum is
+        random."""
+        window = max(1, int(period / 8))
+        lo = max(1, cropLength - window)
+        hi = min(len(scores) - 1, cropLength + window)
+        candidate = lo + int(np.argmin(scores[lo:hi + 1]))
+        if scores[candidate] >= cls.SNAP_GAIN * scores[cropLength]:
+            return cropLength
+        return candidate
+
+    @staticmethod
+    def bestOffset(pixels: Image, axis: int, cropLength: int) -> int:
+        """Start of the crop: where the strip just after the crop looks
+        most like the strip at its start (it follows it when tiled).
+        The strip is half the spare length; its score is a moving
+        average of the per-line squared difference."""
+        lines = np.moveaxis(pixels, axis, -1).astype(np.float64)
+        length = lines.shape[-1]
+        spare = length - cropLength
+        strip = max(1, spare // 2)
+        perLine = ((lines[..., cropLength:] - lines[..., :spare]) ** 2)
+        perLine = perLine.reshape(-1, spare).mean(axis=0)
+        prefix = np.concatenate([[0.0], np.cumsum(perLine)])
+        stripScores = prefix[strip:spare + 1] - prefix[:spare - strip + 1]
+        return int(np.argmin(stripScores))
+
+
 class LightingFlatten:
     """Remove uneven lighting: gradients, vignetting, soft shadows.
 
@@ -171,7 +327,7 @@ class LightingFlatten:
 
 
 # Fixed execution order of the enabled filters (also the GUI order).
-FILTERS: List = [LightingFlatten()]
+FILTERS: List = [PeriodCrop(), LightingFlatten()]
 
 
 def filterByName(name: str):

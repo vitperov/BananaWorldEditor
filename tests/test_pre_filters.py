@@ -47,12 +47,18 @@ def cellMeans(array, cell=8):
 
 class PreFilterInvariants(unittest.TestCase):
 
-    def test_size_and_range_preserved(self):
+    def test_format_preserved_and_input_untouched(self):
         image = toUint8(checker() * vignette())
+        frozen = image.copy()
         for prefilter in FILTERS:
             out = prefilter.apply(image)
-            self.assertEqual(out.shape, (SIZE, SIZE, 3), prefilter.name)
+            np.testing.assert_array_equal(image, frozen, prefilter.name)
+            self.assertEqual(out.ndim, 3, prefilter.name)
+            self.assertEqual(out.shape[2], 3, prefilter.name)
             self.assertEqual(out.dtype, np.uint8, prefilter.name)
+            # A filter may crop, but never below half the size.
+            self.assertGreaterEqual(out.shape[0] * 2, SIZE, prefilter.name)
+            self.assertGreaterEqual(out.shape[1] * 2, SIZE, prefilter.name)
 
     def test_flat_image_unchanged(self):
         image = toUint8(np.full((SIZE, SIZE, 3), 120.0))
