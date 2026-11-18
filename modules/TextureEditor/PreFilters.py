@@ -465,8 +465,76 @@ class HighlightSuppress:
             return gaussianBlurReflect(array, sigma)
 
 
+def boxMean(array: np.ndarray, radius: int) -> np.ndarray:
+    """Mean over a (2r+1)^2 window, borders reflected; O(N) via summed
+    area tables whatever the radius."""
+    padded = np.pad(array, [(radius + 1, radius), (radius + 1, radius)] + [(0, 0)] * (array.ndim - 2),
+                    mode='reflect')
+    table = padded.cumsum(axis=0, dtype=np.float64).cumsum(axis=1)
+    size = 2 * radius + 1
+    total = (table[size:, size:] - table[:-size, size:]
+             - table[size:, :-size] + table[:-size, :-size])
+    return (total / float(size * size)).astype(array.dtype)
+
+
+def noiseSigma(luminance: np.ndarray) -> float:
+    """Noise standard deviation (Immerkaer): the residual of a Laplacian
+    kernel that cancels flat and linear content, scaled so white noise
+    comes out at its sigma."""
+    height, width = luminance.shape
+    if height < 3 or width < 3:
+        return 0.0
+    a = luminance
+    laplace = (a[:-2, :-2] + a[:-2, 2:] + a[2:, :-2] + a[2:, 2:]
+               - 2.0 * (a[:-2, 1:-1] + a[2:, 1:-1] + a[1:-1, :-2] + a[1:-1, 2:])
+               + 4.0 * a[1:-1, 1:-1])
+    return float(np.sqrt(np.pi / 2.0) / 6.0 * np.abs(laplace).mean())
+
+
+class Denoise:
+    """Smooth sensor grain and compression noise while keeping edges.
+
+    A guided filter (He et al.) with the picture's own brightness as the
+    guide: inside each small window the output is a linear function of
+    the guide, so flat areas are averaged while edges with contrast well
+    above the noise are kept. The one knob, the variance below which a
+    window counts as flat (eps), is set from the measured noise level
+    (noiseSigma), so a grainy picture is smoothed hard and a clean one
+    is left essentially alone. Window radius RADIUS is in pixels: noise
+    lives at pixel scale regardless of the texture size.
+    """
+
+    name = 'Denoise'
+    description = (
+        "Use when the photo looks grainy (dim light, high ISO, heavy "
+        "JPEG). Grain is smoothed inside flat areas while brick edges "
+        "and cracks stay sharp. The strength follows how noisy the "
+        "picture is; a clean picture is left as it is.")
+
+    RADIUS = 2               # window radius, pixels
+    STRENGTH = 2.5           # eps = (STRENGTH * noise sigma)^2
+    MIN_SIGMA = 0.75         # below this the picture counts as clean
+
+    def apply(self, pixels: Image) -> Image:
+        image = pixels.astype(np.float32)
+        guide = image @ np.array([0.299, 0.587, 0.114], np.float32)
+        sigma = noiseSigma(guide)
+        if sigma < self.MIN_SIGMA:
+            return pixels
+        eps = np.float32((self.STRENGTH * sigma) ** 2)
+        guide = guide[..., None]
+        meanGuide = boxMean(guide, self.RADIUS)
+        meanImage = boxMean(image, self.RADIUS)
+        varGuide = boxMean(guide * guide, self.RADIUS) - meanGuide * meanGuide
+        covariance = boxMean(guide * image, self.RADIUS) - meanGuide * meanImage
+        a = covariance / (varGuide + eps)
+        b = meanImage - a * meanGuide
+        out = boxMean(a, self.RADIUS) * guide + boxMean(b, self.RADIUS)
+        return toUint8(out)
+
+
 # Fixed execution order of the enabled filters (also the GUI order):
-# fix the light, then the geometry.
+# fix the light, then the geometry, then the grain.
 #  1. Glare first: it is detected by absolute near-white brightness,
 #     which lighting flattening would alter (a spot inflates the local
 #     lighting estimate and gets darkened below the threshold), and a
@@ -474,7 +542,8 @@ class HighlightSuppress:
 #  2. Lighting next: evenly lit content gives the crop a cleaner
 #     self-match curve.
 #  3. The crop (and its scaling back to size).
-FILTERS: List = [HighlightSuppress(), LightingFlatten(), PeriodCrop()]
+#  4. Denoise last, on the final pixels.
+FILTERS: List = [HighlightSuppress(), LightingFlatten(), PeriodCrop(), Denoise()]
 
 
 def filterByName(name: str):
