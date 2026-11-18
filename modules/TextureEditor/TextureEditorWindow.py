@@ -5,6 +5,10 @@
 # for an image file, preview it, check how it tiles (3 x 2 grid), apply
 # a seamless conversion in memory and save it back over the texture
 # file. The texture file is edited, never the icon.
+#
+# Layout: texture list | fixed-size texture preview | seamless check.
+# The seamless check sits beside the preview and takes all remaining
+# window space, so enlarging the window enlarges the tiled picture.
 
 import os
 
@@ -12,13 +16,13 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel,
                              QListWidget, QListWidgetItem, QMessageBox,
-                             QPushButton, QVBoxLayout, QWidget)
+                             QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
 from modules.TextureEditor.TextureEditorModel import TextureEditorModel
 
 CANVAS_SIZE = 256          # texture preview edge, pixels
-CHECK_TILE = 128           # one tile in the seamless check grid
+CHECK_MIN_TILE = 128       # smallest tile in the seamless check grid
 CHECK_COLUMNS, CHECK_ROWS = 3, 2
 
 
@@ -41,6 +45,41 @@ def gridToImage(grid) -> QImage:
         for x, (r, g, b) in enumerate(row):
             image.setPixel(x, y, 0xFF000000 | (r << 16) | (g << 8) | b)
     return image
+
+
+class SeamlessCheckCanvas(QWidget):
+    """Tiles one texture CHECK_COLUMNS x CHECK_ROWS times, as large as the
+    widget allows while keeping the grid's aspect ratio."""
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self._source = QPixmap()
+        self.setMinimumSize(CHECK_MIN_TILE * CHECK_COLUMNS,
+                            CHECK_MIN_TILE * CHECK_ROWS)
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+
+    def setTexture(self, pixmap: QPixmap):
+        self._source = pixmap
+        self.update()
+
+    def tileSize(self) -> int:
+        return max(1, min(self.width() // CHECK_COLUMNS,
+                          self.height() // CHECK_ROWS))
+
+    def paintEvent(self, event):
+        painter = QPainter(self)
+        painter.fillRect(self.rect(), self.palette().window())
+        if self._source.isNull():
+            painter.end()
+            return
+        tileSize = self.tileSize()
+        tile = self._source.scaled(tileSize, tileSize, Qt.IgnoreAspectRatio,
+                                   Qt.SmoothTransformation)
+        # Anchored top-left so the grid sits right under its label.
+        for row in range(CHECK_ROWS):
+            for column in range(CHECK_COLUMNS):
+                painter.drawPixmap(column * tileSize, row * tileSize, tile)
+        painter.end()
 
 
 class TextureEditorWindow(QWidget):
@@ -75,9 +114,7 @@ class TextureEditorWindow(QWidget):
         self._canvas = QLabel()
         self._canvas.setFixedSize(CANVAS_SIZE, CANVAS_SIZE)
         self._canvas.setAlignment(Qt.AlignCenter)
-        self._checkCanvas = QLabel()
-        self._checkCanvas.setFixedSize(CHECK_TILE * CHECK_COLUMNS,
-                                       CHECK_TILE * CHECK_ROWS)
+        self._checkCanvas = SeamlessCheckCanvas()
 
         topRow = QHBoxLayout()
         topRow.addWidget(self._browseButton)
@@ -86,18 +123,33 @@ class TextureEditorWindow(QWidget):
         topRow.addStretch(1)
         topRow.addWidget(self._saveButton)
 
+        # Preview column stays at its fixed size; the check canvas next to
+        # it grows with the window.
+        previewColumn = QVBoxLayout()
+        previewColumn.addWidget(QLabel("Texture:"))
+        previewColumn.addWidget(self._canvas)
+        previewColumn.addStretch(1)
+
+        checkColumn = QVBoxLayout()
+        checkColumn.addWidget(QLabel("Seamless check (%d x %d tiles):"
+                                     % (CHECK_COLUMNS, CHECK_ROWS)))
+        checkColumn.addWidget(self._checkCanvas, 1)
+
+        canvasRow = QHBoxLayout()
+        canvasRow.addLayout(previewColumn)
+        canvasRow.addLayout(checkColumn, 1)
+
         right = QVBoxLayout()
         right.addLayout(topRow)
         right.addWidget(self._fileLabel)
-        right.addWidget(self._canvas)
-        right.addWidget(QLabel("Seamless check (3 x 2 tiles):"))
-        right.addWidget(self._checkCanvas)
-        right.addStretch(1)
+        right.addLayout(canvasRow, 1)
 
         layout = QHBoxLayout()
-        layout.addWidget(self._textureList, 1)
-        layout.addLayout(right, 3)
+        layout.addWidget(self._textureList)
+        layout.addLayout(right, 1)
         self.setLayout(layout)
+        self._textureList.setMaximumWidth(220)
+        self.resize(1280, 720)
 
     def _openCatalogTexture(self, name):
         if name:
@@ -156,12 +208,4 @@ class TextureEditorWindow(QWidget):
             CANVAS_SIZE, CANVAS_SIZE,
             Qt.KeepAspectRatio, Qt.SmoothTransformation))
 
-        tile = pixmap.scaled(CHECK_TILE, CHECK_TILE,
-                             Qt.IgnoreAspectRatio, Qt.SmoothTransformation)
-        grid = QPixmap(CHECK_TILE * CHECK_COLUMNS, CHECK_TILE * CHECK_ROWS)
-        painter = QPainter(grid)
-        for row in range(CHECK_ROWS):
-            for column in range(CHECK_COLUMNS):
-                painter.drawPixmap(column * CHECK_TILE, row * CHECK_TILE, tile)
-        painter.end()
-        self._checkCanvas.setPixmap(grid)
+        self._checkCanvas.setTexture(pixmap)
