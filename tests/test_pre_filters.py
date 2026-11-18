@@ -62,6 +62,11 @@ class PreFilterInvariants(unittest.TestCase):
             np.testing.assert_array_equal(prefilter.apply(image), image,
                                           prefilter.name)
 
+    def test_run_order_is_light_then_geometry(self):
+        self.assertEqual([f.name for f in FILTERS],
+                         ['Suppress highlights', 'Flatten lighting',
+                          'Crop to whole repeats'])
+
     def test_every_filter_is_described(self):
         for prefilter in FILTERS:
             self.assertGreater(len(prefilter.description), 40, prefilter.name)

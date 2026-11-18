@@ -465,12 +465,16 @@ class HighlightSuppress:
             return gaussianBlurReflect(array, sigma)
 
 
-# Fixed execution order of the enabled filters (also the GUI order).
-# Glare first: it is detected by absolute near-white brightness, which
-# lighting flattening would alter (a spot inflates the local lighting
-# estimate and gets darkened below the threshold), and a removed spot
-# no longer skews the lighting estimate. Then geometry, then lighting.
-FILTERS: List = [HighlightSuppress(), PeriodCrop(), LightingFlatten()]
+# Fixed execution order of the enabled filters (also the GUI order):
+# fix the light, then the geometry.
+#  1. Glare first: it is detected by absolute near-white brightness,
+#     which lighting flattening would alter (a spot inflates the local
+#     lighting estimate and gets darkened below the threshold), and a
+#     removed spot no longer skews the lighting estimate.
+#  2. Lighting next: evenly lit content gives the crop a cleaner
+#     self-match curve.
+#  3. The crop (and its scaling back to size).
+FILTERS: List = [HighlightSuppress(), LightingFlatten(), PeriodCrop()]
 
 
 def filterByName(name: str):
