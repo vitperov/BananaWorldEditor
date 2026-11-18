@@ -12,16 +12,21 @@
 # the fixed run order is internal) then "Seamless algorithm". The
 # seamless check takes all remaining window space, so enlarging the
 # window enlarges the tiled picture.
+#
+# The pipeline runs in a PipelineThread so the window stays responsive
+# on large textures; a busy bar with the current step shows in the top
+# row. Changing an option mid-run lets the run finish, drops its
+# (now stale) result and starts one for the latest selection.
 
 import os
 
 import numpy as np
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QThread, pyqtSignal
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
                              QHBoxLayout, QLabel, QListWidget,
-                             QListWidgetItem, QMessageBox, QPushButton,
-                             QSizePolicy, QVBoxLayout, QWidget)
+                             QListWidgetItem, QMessageBox, QProgressBar,
+                             QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
 from modules.TextureEditor.PreFilters import FILTERS, arrayToGrid
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
@@ -54,6 +59,22 @@ def gridToImage(grid) -> QImage:
     # copy(): the QImage must own its pixels, not borrow the array's.
     return QImage(bgra.data, width, height, width * 4,
                   QImage.Format_RGB32).copy()
+
+
+class PipelineThread(QThread):
+    """Runs one PipelineJob and turns its result into a QImage (QImage,
+    unlike QPixmap, may be built outside the GUI thread)."""
+
+    stepStarted = pyqtSignal(int, int, str)
+
+    def __init__(self, job, parent=None):
+        super().__init__(parent)
+        self.job = job
+        self.image = None
+
+    def run(self):
+        self.job.run(self.stepStarted.emit)
+        self.image = gridToImage(self.job.current)
 
 
 class SeamlessCheckCanvas(QWidget):
@@ -127,6 +148,14 @@ class TextureEditorWindow(QWidget):
                 lambda on, name=prefilter.name: self._toggleFilter(name, on))
             self._filterBoxes.append(box)
 
+        self._thread = None
+        self._busyLabel = QLabel()
+        self._busyBar = QProgressBar()
+        self._busyBar.setRange(0, 0)        # animated "working" bar
+        self._busyBar.setTextVisible(False)
+        self._busyBar.setFixedWidth(160)
+        self._setBusy(False)
+
         self._fileLabel = QLabel("No texture loaded")
         # A long path (browsed file far from the repo) must not widen the
         # window; it is clipped and the full path is in the tooltip.
@@ -140,6 +169,8 @@ class TextureEditorWindow(QWidget):
         topRow = QHBoxLayout()
         topRow.addWidget(self._browseButton)
         topRow.addStretch(1)
+        topRow.addWidget(self._busyLabel)
+        topRow.addWidget(self._busyBar)
         topRow.addWidget(self._saveButton)
 
         # Preview column stays at its fixed size; the check canvas next to
@@ -195,7 +226,6 @@ class TextureEditorWindow(QWidget):
         label.setFont(font)
         return label
 
-
     def _algorithmGroup(self) -> QGroupBox:
         group = QGroupBox("Seamless algorithm")
         column = QVBoxLayout()
@@ -229,16 +259,14 @@ class TextureEditorWindow(QWidget):
         self._saveButton.setEnabled(True)
         self._fileLabel.setText(os.path.relpath(path))
         self._fileLabel.setToolTip(os.path.abspath(path))
-        self._refreshCanvases()
+        self._showImage(gridToImage(self._model.current))
 
     def _applyAlgorithm(self, name):
-        if not self._model.isLoaded():
-            return
         self._model.setAlgorithm(name)
-        self._refreshCanvases()
+        self._recompute()
 
     def _save(self):
-        if not self._model.isLoaded():
+        if not self._model.isLoaded() or not self._model.isUpToDate():
             return
         image = gridToImage(self._model.current)
         if not image.save(self._model.filePath):
@@ -248,12 +276,50 @@ class TextureEditorWindow(QWidget):
         # The saved image is the new original.
         self._model.markSaved()
         self._resetControls()
-        self._refreshCanvases()
+        self._showImage(image)
 
     def _toggleFilter(self, name, enabled):
         self._model.setFilterEnabled(name, enabled)
-        if self._model.isLoaded():
-            self._refreshCanvases()
+        self._recompute()
+
+    def _recompute(self):
+        """Bring the picture in line with the selection, in the
+        background. While a run is busy nothing starts: its finish
+        handler sees the newer selection and starts the next run."""
+        if self._thread is not None:
+            return
+        if not self._model.isLoaded() or self._model.isUpToDate():
+            self._setBusy(False)
+            return
+        self._thread = PipelineThread(self._model.makeJob(), self)
+        self._thread.stepStarted.connect(self._onStep)
+        self._thread.finished.connect(self._onFinished)
+        self._setBusy(True)
+        self._thread.start()
+
+    def _onStep(self, index, count, label):
+        if index < count:
+            self._busyLabel.setText("Step %d of %d: %s..." % (index + 1, count, label))
+
+    def _onFinished(self):
+        thread, self._thread = self._thread, None
+        if self._model.acceptResult(thread.job):
+            self._showImage(thread.image)
+        thread.deleteLater()
+        self._recompute()
+
+    def _setBusy(self, busy):
+        self._busyLabel.setVisible(busy)
+        self._busyBar.setVisible(busy)
+        self._saveButton.setEnabled(not busy and self._model.isLoaded())
+        if busy:
+            self._busyLabel.setText("Working...")
+
+    def closeEvent(self, event):
+        # A QThread must not be destroyed while running.
+        if self._thread is not None:
+            self._thread.wait()
+        super().closeEvent(event)
 
     def _resetControls(self):
         """Mirror the model after open/save: no filters, Original."""
@@ -265,8 +331,8 @@ class TextureEditorWindow(QWidget):
         for widget in [self._seamlessBox] + self._filterBoxes:
             widget.blockSignals(False)
 
-    def _refreshCanvases(self):
-        pixmap = QPixmap.fromImage(gridToImage(self._model.current))
+    def _showImage(self, image: QImage):
+        pixmap = QPixmap.fromImage(image)
         self._canvas.setPixmap(pixmap.scaled(
             CANVAS_SIZE, CANVAS_SIZE,
             Qt.KeepAspectRatio, Qt.SmoothTransformation))
