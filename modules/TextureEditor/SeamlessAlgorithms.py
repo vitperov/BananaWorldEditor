@@ -2,26 +2,29 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 #
 # Algorithms that turn a texture into a seamlessly tileable one.
-# No Qt dependencies: an image is a list of rows, a row is a list of
-# (r, g, b) tuples with 0..255 ints. The texture editor window converts
-# QImage to this grid and back; the unit tests use the grids directly.
+# No Qt dependencies: an image is a numpy uint8 array of shape
+# (height, width, 3), RGB. The texture editor window converts QImage to
+# this array and back; the unit tests use the arrays directly.
 #
-# Every algorithm is a pure function of the input grid and keeps the
-# image size. "Original" (no conversion) is represented by the absence
-# of an algorithm, not by a class here.
+# Every algorithm is a pure function of the input image (never modifies
+# it) and keeps the image size. All work is vectorized numpy. "Original"
+# (no conversion) is represented by the absence of an algorithm, not by
+# a class here.
 
-from typing import List, Tuple
+import numpy as np
 
-Pixel = Tuple[int, int, int]
-Grid = List[List[Pixel]]
-
-
-def _lerp(a: Pixel, b: Pixel, t: float) -> Pixel:
-    return tuple(int(round(ca + (cb - ca) * t)) for ca, cb in zip(a, b))
+Image = np.ndarray      # (height, width, 3) uint8, RGB
 
 
-def _smoothstep(t: float) -> float:
-    t = min(1.0, max(0.0, t))
+def _lerp(a: np.ndarray, b: np.ndarray, t) -> np.ndarray:
+    """a..b at t, rounded half-to-even to uint8; t broadcasts against
+    the pixel arrays (scalar, per row or per column)."""
+    a = a.astype(np.float64)
+    return np.rint(a + (b.astype(np.float64) - a) * t).astype(np.uint8)
+
+
+def _smoothstep(t: np.ndarray) -> np.ndarray:
+    t = np.clip(t, 0.0, 1.0)
     return t * t * (3.0 - 2.0 * t)
 
 
@@ -36,14 +39,14 @@ class MirrorFold:
 
     name = 'Mirror fold'
 
-    def apply(self, pixels: Grid) -> Grid:
-        height, width = len(pixels), len(pixels[0])
+    def apply(self, pixels: Image) -> Image:
+        height, width = pixels.shape[:2]
 
-        def fold(i, n):
-            return i if i < (n + 1) // 2 else n - 1 - i
+        def fold(n):
+            i = np.arange(n)
+            return np.where(i < (n + 1) // 2, i, n - 1 - i)
 
-        return [[pixels[fold(y, height)][fold(x, width)]
-                 for x in range(width)] for y in range(height)]
+        return pixels[fold(height)][:, fold(width)]
 
 
 class OffsetBlend:
@@ -58,21 +61,22 @@ class OffsetBlend:
 
     name = 'Offset blend'
 
-    def apply(self, pixels: Grid) -> Grid:
-        height, width = len(pixels), len(pixels[0])
-        shiftX, shiftY = width // 2, height // 2
-        out = []
-        for y in range(height):
-            row = []
-            dy = abs(y - (height - 1) / 2.0) / ((height - 1) / 2.0)
-            for x in range(width):
-                dx = abs(x - (width - 1) / 2.0) / ((width - 1) / 2.0)
-                # 0 in the center half of each axis, 1 at the border.
-                alpha = _smoothstep(max(dx, dy) * 2.0 - 1.0)
-                shifted = pixels[(y + shiftY) % height][(x + shiftX) % width]
-                row.append(_lerp(pixels[y][x], shifted, alpha))
-            out.append(row)
-        return out
+    def apply(self, pixels: Image) -> Image:
+        height, width = pixels.shape[:2]
+        shifted = np.roll(pixels, (-(height // 2), -(width // 2)), axis=(0, 1))
+
+        def distance(n):
+            # 0 at the center, 1 at both borders (a 1-pixel axis is
+            # all center).
+            if n == 1:
+                return np.zeros(1)
+            half = (n - 1) / 2.0
+            return np.abs(np.arange(n) - half) / half
+
+        # 0 in the center half of each axis, 1 at the border.
+        alpha = _smoothstep(np.maximum(distance(height)[:, None],
+                                       distance(width)[None, :]) * 2.0 - 1.0)
+        return _lerp(pixels, shifted, alpha[..., None])
 
 
 class OverlapCrossfade:
@@ -87,49 +91,48 @@ class OverlapCrossfade:
 
     name = 'Overlap crossfade'
 
-    def apply(self, pixels: Grid) -> Grid:
-        height, width = len(pixels), len(pixels[0])
-        blended = self._foldAxis(pixels, width)                 # columns
-        transposed = [list(row) for row in zip(*blended)]
-        blended = self._foldAxis(transposed, height)            # rows
-        result = [list(row) for row in zip(*blended)]
-        return self._resize(result, width, height)
+    def apply(self, pixels: Image) -> Image:
+        height, width = pixels.shape[:2]
+        blended = self._foldAxis(pixels, axis=1)                # columns
+        blended = self._foldAxis(blended, axis=0)               # rows
+        return self._resize(blended, width, height)
 
     @staticmethod
-    def _foldAxis(pixels: Grid, length: int) -> Grid:
+    def _foldAxis(pixels: Image, axis: int) -> Image:
+        """Keep the first length - margin lines; fade the last margin
+        lines in over the first ones."""
+        view = np.moveaxis(pixels, axis, 1)
+        length = view.shape[1]
+        if length < 2:          # a single line already tiles
+            return pixels
         margin = max(1, length // 4)
         kept = length - margin
-        out = []
-        for row in pixels:
-            newRow = []
-            for x in range(kept):
-                if x < margin:
-                    alpha = (x + 1) / (margin + 1)
-                    newRow.append(_lerp(row[kept + x], row[x], alpha))
-                else:
-                    newRow.append(row[x])
-            out.append(newRow)
-        return out
+        out = view[:, :kept].copy()
+        alpha = (np.arange(margin) + 1) / (margin + 1)
+        out[:, :margin] = _lerp(view[:, kept:kept + margin], view[:, :margin],
+                                alpha[None, :, None])
+        return np.moveaxis(out, 1, axis)
 
     @staticmethod
-    def _resize(pixels: Grid, width: int, height: int) -> Grid:
-        srcH, srcW = len(pixels), len(pixels[0])
-        out = []
-        for y in range(height):
-            fy = y * (srcH - 1) / (height - 1) if height > 1 else 0.0
-            y0 = min(int(fy), srcH - 2) if srcH > 1 else 0
-            ty = fy - y0
-            row = []
-            for x in range(width):
-                fx = x * (srcW - 1) / (width - 1) if width > 1 else 0.0
-                x0 = min(int(fx), srcW - 2) if srcW > 1 else 0
-                tx = fx - x0
-                top = _lerp(pixels[y0][x0], pixels[y0][min(x0 + 1, srcW - 1)], tx)
-                bottom = _lerp(pixels[min(y0 + 1, srcH - 1)][x0],
-                               pixels[min(y0 + 1, srcH - 1)][min(x0 + 1, srcW - 1)], tx)
-                row.append(_lerp(top, bottom, ty))
-            out.append(row)
-        return out
+    def _resize(pixels: Image, width: int, height: int) -> Image:
+        """Corner-aligned bilinear resize, rounded after the horizontal
+        pass (done once over the source rows) and after the vertical."""
+        srcH, srcW = pixels.shape[:2]
+
+        def axis(target, source):
+            if target > 1:
+                pos = np.arange(target) * (source - 1) / (target - 1)
+            else:
+                pos = np.zeros(target)
+            low = (np.minimum(pos.astype(int), source - 2) if source > 1
+                   else np.zeros(target, int))
+            high = np.minimum(low + 1, source - 1)
+            return low, high, pos - low
+
+        y0, y1, ty = axis(height, srcH)
+        x0, x1, tx = axis(width, srcW)
+        across = _lerp(pixels[:, x0], pixels[:, x1], tx[None, :, None])
+        return _lerp(across[y0], across[y1], ty[:, None, None])
 
 
 # Dropdown order in the texture editor.

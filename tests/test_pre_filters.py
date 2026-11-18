@@ -19,7 +19,7 @@ sys.path.insert(0, REPO_ROOT)
 
 from modules.TextureEditor.PreFilters import (FILTERS, LIGHTING_WORK_SIZE,
                                               LightingFlatten, applyFilters,
-                                              arrayToGrid, gridToArray)
+                                              toUint8)
 
 SIZE = 64
 
@@ -48,47 +48,46 @@ def cellMeans(array, cell=8):
 class PreFilterInvariants(unittest.TestCase):
 
     def test_size_and_range_preserved(self):
-        grid = arrayToGrid(checker() * vignette())
+        image = toUint8(checker() * vignette())
         for prefilter in FILTERS:
-            out = prefilter.apply(grid)
-            self.assertEqual(len(out), SIZE, prefilter.name)
-            self.assertEqual(len(out[0]), SIZE, prefilter.name)
-            values = np.asarray(out)
-            self.assertTrue(values.min() >= 0 and values.max() <= 255)
+            out = prefilter.apply(image)
+            self.assertEqual(out.shape, (SIZE, SIZE, 3), prefilter.name)
+            self.assertEqual(out.dtype, np.uint8, prefilter.name)
 
     def test_flat_image_unchanged(self):
-        grid = arrayToGrid(np.full((SIZE, SIZE, 3), 120.0))
+        image = toUint8(np.full((SIZE, SIZE, 3), 120.0))
         for prefilter in FILTERS:
-            self.assertEqual(prefilter.apply(grid), grid, prefilter.name)
+            np.testing.assert_array_equal(prefilter.apply(image), image,
+                                          prefilter.name)
 
     def test_every_filter_is_described(self):
         for prefilter in FILTERS:
             self.assertGreater(len(prefilter.description), 40, prefilter.name)
 
     def test_no_filters_is_identity(self):
-        grid = arrayToGrid(checker())
-        self.assertIs(applyFilters(grid, set()), grid)
+        image = toUint8(checker())
+        self.assertIs(applyFilters(image, set()), image)
 
 
 class LightingFlattenTest(unittest.TestCase):
 
     def test_removes_vignette(self):
         lit = checker() * vignette()
-        out = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
+        out = LightingFlatten().apply(toUint8(lit)).astype(float)
         before = np.ptp(cellMeans(lit))
         after = np.ptp(cellMeans(out))
         self.assertLess(after, before * 0.1)
 
     def test_keeps_fine_detail(self):
         lit = checker() * vignette()
-        out = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
+        out = LightingFlatten().apply(toUint8(lit)).astype(float)
         # Checker contrast between neighbouring cells survives.
         contrast = np.abs(out[:, 4:] - out[:, :-4]).mean()
         self.assertGreater(contrast, 0.7 * 60)
 
     def test_keeps_mean_brightness(self):
         lit = checker() * vignette()
-        out = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
+        out = LightingFlatten().apply(toUint8(lit)).astype(float)
         self.assertAlmostEqual(out.mean(), lit.mean(), delta=1.0)
 
     def test_large_image_matches_full_resolution(self):
@@ -100,7 +99,7 @@ class LightingFlattenTest(unittest.TestCase):
         tex = np.where(((x // cell) + (y // cell)) % 2 == 0, 160.0, 100.0)
         light = 0.55 + 0.45 * x / (size - 1)
         lit = (tex * light)[..., None].repeat(3, axis=2)
-        fast = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
+        fast = LightingFlatten().apply(toUint8(lit)).astype(float)
         exact = LightingFlatten()._lighting(lit)
         exact = lit / exact
         exact *= lit.mean(axis=(0, 1)) / exact.mean(axis=(0, 1))

@@ -1,7 +1,7 @@
 # SPDX-License-Identifier: MIT
 # Copyright (c) 2022-2026 Vitaly Perov
 #
-# State of the texture editor: the image being edited (as a pixel grid,
+# State of the texture editor: the image being edited (a uint8 RGB array,
 # see SeamlessAlgorithms), the file it came from, the enabled
 # pre-filters and the seamless conversion currently applied.
 # Pipeline: original -> enabled pre-filters (fixed order) -> algorithm.
@@ -16,7 +16,7 @@
 from typing import Callable, FrozenSet, Optional, Set
 
 from modules.TextureEditor.PreFilters import FILTERS
-from modules.TextureEditor.SeamlessAlgorithms import Grid, algorithmByName
+from modules.TextureEditor.SeamlessAlgorithms import Image, algorithmByName
 
 # progress(stepIndex, stepCount, stepLabel), called before each step.
 Progress = Callable[[int, int, str], None]
@@ -25,16 +25,16 @@ Progress = Callable[[int, int, str], None]
 class PipelineJob:
     """One run of the pipeline on a snapshot of the model state."""
 
-    def __init__(self, version: int, original: Grid,
+    def __init__(self, version: int, original: Image,
                  filterNames: FrozenSet[str], algorithmName: str,
-                 cachedFiltered: Optional[Grid]):
+                 cachedFiltered: Optional[Image]):
         self.version = version
         self.filterNames = filterNames
         self.algorithmName = algorithmName
         self._original = original
         self._cachedFiltered = cachedFiltered
-        self.filtered: Optional[Grid] = None
-        self.current: Optional[Grid] = None
+        self.filtered: Optional[Image] = None
+        self.current: Optional[Image] = None
 
     def steps(self):
         names = []
@@ -52,20 +52,20 @@ class PipelineJob:
             if progress:
                 progress(step, len(steps), label)
 
-        grid = self._cachedFiltered
-        if grid is None:
-            grid = self._original
+        pixels = self._cachedFiltered
+        if pixels is None:
+            pixels = self._original
             for prefilter in FILTERS:
                 if prefilter.name in self.filterNames:
                     report(prefilter.name)
-                    grid = prefilter.apply(grid)
+                    pixels = prefilter.apply(pixels)
                     step += 1
-        self.filtered = grid
+        self.filtered = pixels
         if self.algorithmName != TextureEditorModel.ORIGINAL:
             report(self.algorithmName)
-            grid = algorithmByName(self.algorithmName).apply(grid)
+            pixels = algorithmByName(self.algorithmName).apply(pixels)
             step += 1
-        self.current = grid
+        self.current = pixels
         if progress:
             progress(step, len(steps), "Done")
 
@@ -77,8 +77,8 @@ class TextureEditorModel:
 
     def __init__(self):
         self.filePath: Optional[str] = None
-        self.original: Optional[Grid] = None
-        self.current: Optional[Grid] = None
+        self.original: Optional[Image] = None
+        self.current: Optional[Image] = None
         self.algorithmName = self.ORIGINAL
         self.enabledFilters: Set[str] = set()
         # Bumped on every state change; a job's result is accepted only
@@ -86,7 +86,7 @@ class TextureEditorModel:
         self.version = 0
         # Original after the pre-filters, for the filter set it was made
         # with: switching the algorithm reuses it.
-        self._filtered: Optional[Grid] = None
+        self._filtered: Optional[Image] = None
         self._filteredFor: Optional[FrozenSet[str]] = None
         self._currentVersion = 0
 
@@ -97,7 +97,7 @@ class TextureEditorModel:
         """current matches the selected filters and algorithm."""
         return self._currentVersion == self.version
 
-    def open(self, pixels: Grid, filePath: str):
+    def open(self, pixels: Image, filePath: str):
         self.filePath = filePath
         self.original = pixels
         self._reset()

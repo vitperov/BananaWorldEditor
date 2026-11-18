@@ -9,9 +9,10 @@
 #   python3 -m unittest discover -s tests
 
 import os
-import random
 import sys
 import unittest
+
+import numpy as np
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
@@ -22,47 +23,43 @@ from modules.TextureEditor.SeamlessAlgorithms import (ALGORITHMS,
 
 def gradient(width, height):
     """Horizontal+vertical gradient: the least tileable image there is."""
-    return [[(int(255 * x / (width - 1)), int(255 * y / (height - 1)), 128)
-             for x in range(width)] for y in range(height)]
+    y, x = np.mgrid[0:height, 0:width]
+    return np.stack([255 * x // (width - 1), 255 * y // (height - 1),
+                     np.full_like(x, 128)], axis=-1).astype(np.uint8)
 
 
 def noisy(width, height, seed=7):
-    rng = random.Random(seed)
-    return [[(rng.randrange(256), rng.randrange(256), rng.randrange(256))
-             for _ in range(width)] for _ in range(height)]
+    rng = np.random.default_rng(seed)
+    return rng.integers(0, 256, (height, width, 3), dtype=np.uint8)
 
 
 def seamJump(pixels):
     """Mean channel difference across the tile wrap, both axes."""
-    height, width = len(pixels), len(pixels[0])
-    total, count = 0, 0
-    for y in range(height):
-        for a, b in zip(pixels[y][0], pixels[y][width - 1]):
-            total += abs(a - b)
-            count += 1
-    for x in range(width):
-        for a, b in zip(pixels[0][x], pixels[height - 1][x]):
-            total += abs(a - b)
-            count += 1
-    return total / count
+    p = pixels.astype(int)
+    jumps = np.concatenate([np.abs(p[:, 0] - p[:, -1]).ravel(),
+                            np.abs(p[0] - p[-1]).ravel()])
+    return jumps.mean()
 
 
 class SeamlessAlgorithms(unittest.TestCase):
 
     def test_size_range_and_purity(self):
         source = noisy(21, 13)
-        frozen = [row[:] for row in source]
+        frozen = source.copy()
         for algorithm in ALGORITHMS:
             result = algorithm.apply(source)
-            self.assertEqual(source, frozen, algorithm.name)  # input untouched
-            self.assertEqual((len(result), len(result[0])), (13, 21),
-                             algorithm.name)
-            for row in result:
-                for pixel in row:
-                    self.assertEqual(len(pixel), 3)
-                    for channel in pixel:
-                        self.assertTrue(0 <= channel <= 255, algorithm.name)
-            self.assertEqual(result, algorithm.apply(source), algorithm.name)
+            np.testing.assert_array_equal(source, frozen, algorithm.name)
+            self.assertEqual(result.shape, (13, 21, 3), algorithm.name)
+            self.assertEqual(result.dtype, np.uint8, algorithm.name)
+            np.testing.assert_array_equal(result, algorithm.apply(source),
+                                          algorithm.name)
+
+    def test_one_pixel_axes(self):
+        for shape in [(1, 1, 3), (1, 7, 3), (7, 1, 3)]:
+            source = noisy(shape[1], shape[0])
+            for algorithm in ALGORITHMS:
+                self.assertEqual(algorithm.apply(source).shape, shape,
+                                 algorithm.name)
 
     def test_seam_is_reduced_on_the_worst_case(self):
         source = gradient(32, 24)
@@ -74,9 +71,8 @@ class SeamlessAlgorithms(unittest.TestCase):
 
     def test_mirror_edges_are_exactly_equal(self):
         result = algorithmByName('Mirror fold').apply(noisy(20, 16))
-        for row in result:
-            self.assertEqual(row[0], row[-1])
-        self.assertEqual(result[0], result[-1])
+        np.testing.assert_array_equal(result[:, 0], result[:, -1])
+        np.testing.assert_array_equal(result[0], result[-1])
 
     def test_unique_names_and_lookup(self):
         names = [a.name for a in ALGORITHMS]

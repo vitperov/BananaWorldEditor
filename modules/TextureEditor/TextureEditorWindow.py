@@ -28,7 +28,7 @@ from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
                              QListWidgetItem, QMessageBox, QProgressBar,
                              QPushButton, QSizePolicy, QVBoxLayout, QWidget)
 
-from modules.TextureEditor.PreFilters import FILTERS, arrayToGrid
+from modules.TextureEditor.PreFilters import FILTERS
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
 from modules.TextureEditor.TextureEditorModel import TextureEditorModel
 
@@ -40,18 +40,18 @@ CHECK_COLUMNS, CHECK_ROWS = 3, 2
 # Format_RGB32 pixels are 0xFFRRGGBB words: bytes B, G, R, 0xFF on the
 # little-endian machines the editor runs on.
 
-def imageToGrid(image: QImage):
+def imageToArray(image: QImage) -> np.ndarray:
+    """QImage -> (height, width, 3) uint8 RGB array (a copy)."""
     image = image.convertToFormat(QImage.Format_RGB32)
     width, height = image.width(), image.height()
     bits = image.constBits()
     bits.setsize(image.bytesPerLine() * height)
     rows = np.frombuffer(bits, np.uint8).reshape(height, image.bytesPerLine())
     bgra = rows[:, :width * 4].reshape(height, width, 4)
-    return arrayToGrid(bgra[..., 2::-1])
+    return np.ascontiguousarray(bgra[..., 2::-1])
 
 
-def gridToImage(grid) -> QImage:
-    rgb = np.asarray(grid, dtype=np.uint8).reshape(len(grid), len(grid[0]), 3)
+def arrayToImage(rgb: np.ndarray) -> QImage:
     height, width = rgb.shape[:2]
     bgra = np.empty((height, width, 4), np.uint8)
     bgra[..., :3] = rgb[..., ::-1]
@@ -74,7 +74,7 @@ class PipelineThread(QThread):
 
     def run(self):
         self.job.run(self.stepStarted.emit)
-        self.image = gridToImage(self.job.current)
+        self.image = arrayToImage(self.job.current)
 
 
 class SeamlessCheckCanvas(QWidget):
@@ -254,12 +254,12 @@ class TextureEditorWindow(QWidget):
             QMessageBox.critical(self, "Texture Editor",
                                  "Cannot load image:\n%s" % path)
             return
-        self._model.open(imageToGrid(image), path)
+        self._model.open(imageToArray(image), path)
         self._resetControls()
         self._saveButton.setEnabled(True)
         self._fileLabel.setText(os.path.relpath(path))
         self._fileLabel.setToolTip(os.path.abspath(path))
-        self._showImage(gridToImage(self._model.current))
+        self._showImage(arrayToImage(self._model.current))
 
     def _applyAlgorithm(self, name):
         self._model.setAlgorithm(name)
@@ -268,7 +268,7 @@ class TextureEditorWindow(QWidget):
     def _save(self):
         if not self._model.isLoaded() or not self._model.isUpToDate():
             return
-        image = gridToImage(self._model.current)
+        image = arrayToImage(self._model.current)
         if not image.save(self._model.filePath):
             QMessageBox.critical(self, "Texture Editor",
                                  "Cannot save:\n%s" % self._model.filePath)

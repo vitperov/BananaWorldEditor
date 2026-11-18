@@ -2,8 +2,8 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 #
 # Pre-filters: corrections applied to a texture before the seamless
-# algorithm. Same grid format and contract as SeamlessAlgorithms (pure
-# function, keeps size, 0..255 values); numpy does the work inside.
+# algorithm. Same image format and contract as SeamlessAlgorithms
+# ((height, width, 3) uint8 array, pure function, keeps size).
 #
 # The user only toggles filters on or off. FILTERS is the fixed order
 # the enabled ones run in, so the order is never the user's concern.
@@ -16,16 +16,11 @@ from typing import List
 
 import numpy as np
 
-from modules.TextureEditor.SeamlessAlgorithms import Grid
+from modules.TextureEditor.SeamlessAlgorithms import Image
 
 
-def gridToArray(grid: Grid) -> np.ndarray:
-    return np.asarray(grid, dtype=np.float64).reshape(len(grid), len(grid[0]), 3)
-
-
-def arrayToGrid(array: np.ndarray) -> Grid:
-    array = np.clip(np.rint(array), 0, 255).astype(np.uint8)
-    return [list(map(tuple, row)) for row in array.tolist()]
+def toUint8(array: np.ndarray) -> Image:
+    return np.clip(np.rint(array), 0, 255).astype(np.uint8)
 
 
 # Lighting is smooth, so it is estimated on a copy whose longer side is
@@ -112,8 +107,8 @@ class LightingFlatten:
     SIGMA_FRACTION = 1.0 / 8.0
     EPSILON = 1.0
 
-    def apply(self, grid: Grid) -> Grid:
-        image = gridToArray(grid)
+    def apply(self, pixels: Image) -> Image:
+        image = pixels.astype(np.float64)
         height, width = image.shape[:2]
         scale = min(1.0, LIGHTING_WORK_SIZE / max(height, width))
         small = image
@@ -125,7 +120,7 @@ class LightingFlatten:
             lighting = upscaleBilinear(lighting, height, width)
         flat = image / lighting
         gain = image.mean(axis=(0, 1)) / np.maximum(flat.mean(axis=(0, 1)), 1e-9)
-        return arrayToGrid(flat * gain)
+        return toUint8(flat * gain)
 
     def _lighting(self, image: np.ndarray) -> np.ndarray:
         """Brightness map to divide out: quadratic fit times the heavy
@@ -147,8 +142,8 @@ def filterByName(name: str):
     raise KeyError(f"Unknown pre-filter: {name}")
 
 
-def applyFilters(grid: Grid, enabledNames) -> Grid:
+def applyFilters(pixels: Image, enabledNames) -> Image:
     for prefilter in FILTERS:
         if prefilter.name in enabledNames:
-            grid = prefilter.apply(grid)
-    return grid
+            pixels = prefilter.apply(pixels)
+    return pixels

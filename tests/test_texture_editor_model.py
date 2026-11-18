@@ -12,6 +12,8 @@ import os
 import sys
 import unittest
 
+import numpy as np
+
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
@@ -24,8 +26,8 @@ ALGORITHM = MirrorFold.name
 
 
 def picture(size=16):
-    return [[(x * 15, y * 15, (x + y) * 7) for x in range(size)]
-            for y in range(size)]
+    y, x = np.mgrid[0:size, 0:size]
+    return np.stack([x * 15, y * 15, (x + y) * 7], axis=-1).astype(np.uint8)
 
 
 def loaded():
@@ -48,7 +50,7 @@ class TextureEditorModelTest(unittest.TestCase):
         self.assertFalse(model.isUpToDate())
         model.recompute()
         expected = MirrorFold().apply(applyFilters(picture(), {FILTER}))
-        self.assertEqual(model.current, expected)
+        np.testing.assert_array_equal(model.current, expected)
 
     def test_stale_job_rejected(self):
         model = loaded()
