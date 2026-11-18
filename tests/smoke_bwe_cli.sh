@@ -364,6 +364,17 @@ assert_eq "$bad_bool" "rejected" "place: non-boolean value for a bool prop is re
 if py "$BWE_CLI" place "$P" --at 0 0 --model nextLevel --prop levelId=xyz >/dev/null 2>&1; then
   bad_int=ok; else bad_int=rejected; fi
 assert_eq "$bad_int" "rejected" "place: non-integer value for an int prop is rejected"
+# setprop changing model in the same call still applies the other props, typed
+# against the NEW model (levelId is int on nextLevel, unknown on opponentRespawn)
+tt place "$P" --at 5 5 --model opponentRespawn
+tt setprop "$P" --rect "5 5 1 1" --model opponentRespawn --prop model=nextLevel --prop levelId=7
+assert_eq "$(count "$P" opponentRespawn)" "1" "setprop model change: only the targeted square changed model"
+at55=$(py -c "
+import json
+d=json.load(open('$P'))
+s=[s for s in d['squares'] if s['x']==5 and s['y']==5 and s.get('model')=='nextLevel'][0]
+print(s['model'], json.dumps(s.get('additionalProperties',{}).get('levelId')))")
+assert_eq "$at55" "nextLevel 7" "setprop model change: extra prop applied, typed by new model"
 
 echo ""
 echo "=========================================="

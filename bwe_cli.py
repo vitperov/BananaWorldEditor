@@ -420,17 +420,22 @@ def cmd_setprop(args):
     oc, model = build_model(args.map)
     sel = _selection(args.rect, args.z)
     kv = _parse_kv(args.prop)
-    # Count matches BEFORE mutating: if a --prop changes 'model', the filter would
-    # no longer match afterwards and the report would wrongly say 0.
-    n = len(model.getAllObjectOfType(args.model, sel))
-    additional = {}
-    for key, value in kv.items():
-        if key in BASE_PROPS:
-            model.setGroupProperty(sel, args.model, key, value)
-        else:
-            additional[key] = _coerce_prop_value(oc, args.model, key, value)
-    if additional:
-        model.setGroupProperty(sel, args.model, 'additionalProperties', additional)
+    # Snapshot the matching squares BEFORE mutating: if a --prop changes 'model',
+    # filtering by args.model afterwards would match nothing and silently drop
+    # the remaining props.
+    squares = model.getAllObjectOfType(args.model, sel)
+    # Additional props are typed against the model the squares end up as.
+    target_model = kv.get('model', args.model)
+    additional = {k: _coerce_prop_value(oc, target_model, k, v)
+                  for k, v in kv.items() if k not in BASE_PROPS}
+    for square in squares:
+        for key in BASE_PROPS:
+            if key in kv:
+                square.setProperty(key, kv[key])
+        for key, value in additional.items():
+            square.setAdditioanalProperty(key, value)
+        model.updateModelSize(square)
+    n = len(squares)
     out = args.out or args.map
     save_model(model, out)
     changes = ", ".join("%s=%s" % (k, v) for k, v in kv.items())
