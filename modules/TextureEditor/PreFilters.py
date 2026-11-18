@@ -2,10 +2,10 @@
 # Copyright (c) 2022-2026 Vitaly Perov
 #
 # Pre-filters: corrections applied to a texture before the seamless
-# algorithm. Same image format as SeamlessAlgorithms ((height, width, 3)
-# uint8 array) and pure functions, but a filter may change the size
-# (the crop does); the algorithms after it work on whatever size they
-# get.
+# algorithm. Same image format and contract as SeamlessAlgorithms
+# ((height, width, 3) uint8 array, pure function, keeps size): textures
+# tile by world size (one repeat per grid square, see BoxFaces), so a
+# texture must keep its square shape; the crop scales back.
 #
 # The user only toggles filters on or off. FILTERS is the fixed order
 # the enabled ones run in, so the order is never the user's concern.
@@ -145,6 +145,23 @@ def localMinima(values: np.ndarray) -> np.ndarray:
     return np.nonzero(inner)[0] + 1
 
 
+def resizePeriodic(pixels: Image, height: int, width: int) -> Image:
+    """Bilinear resize of a tileable picture: pixel centres map onto
+    pixel centres and the interpolation wraps around, so the pattern
+    period scales exactly onto the new size and the wrap seam stays
+    continuous (an edge-clamped resize would leave a step there)."""
+    def axis(source, target):
+        pos = (np.arange(target) + 0.5) * source / target - 0.5
+        low = np.floor(pos).astype(int)
+        return low % source, (low + 1) % source, (pos - low)[..., None]
+    y0, y1, wy = axis(pixels.shape[0], height)
+    x0, x1, wx = axis(pixels.shape[1], width)
+    rows = pixels.astype(np.float32)
+    rows = rows[:, x0] * (1 - wx) + rows[:, x1] * wx
+    out = rows[y0] * (1 - wy[:, None]) + rows[y1] * wy[:, None]
+    return toUint8(out)
+
+
 def subpixelMinimum(values: np.ndarray, index: int) -> float:
     """Position of the minimum of the parabola through the three
     samples around a local minimum at index."""
@@ -165,7 +182,9 @@ class PeriodCrop:
     multiple of it that fits, at the offset where the cut edges match
     best. Opposite edges then continue the pattern when tiled. Nothing
     is cropped when no clear repeat is found or the size is already a
-    whole multiple. Never crops below half the size.
+    whole multiple. Never crops below half the size. The crop is then
+    scaled back to the original size (textures must keep their square
+    shape), so the repeats get a little wider or taller.
 
     Period detection only trusts shifts that leave at least
     MIN_OVERLAP of the picture to compare (short overlaps match by
@@ -179,9 +198,9 @@ class PeriodCrop:
     description = (
         "Use for bricks, tiles, planks or any regular pattern. Trims "
         "the picture so it holds a whole number of repeats and the "
-        "pattern continues across the tile edge. The picture gets a bit "
-        "smaller (never below half). Nothing changes when no repeating "
-        "pattern is found.")
+        "pattern continues across the tile edge, then stretches it back "
+        "to its size, so the bricks get a little wider or taller. "
+        "Nothing changes when no repeating pattern is found.")
 
     MIN_LENGTH = 16          # shorter axes are left alone
     MIN_OVERLAP = 0.2        # fraction of length a trusted shift keeps
@@ -194,6 +213,14 @@ class PeriodCrop:
     MAX_MISALIGNMENT = 2
 
     def apply(self, pixels: Image) -> Image:
+        height, width = pixels.shape[:2]
+        cropped = self.crop(pixels)
+        if cropped.shape == pixels.shape:
+            return cropped
+        return resizePeriodic(cropped, height, width)
+
+    def crop(self, pixels: Image) -> Image:
+        """The whole-repeats crop itself, before scaling back."""
         rows = self.cropRange(pixels, axis=0)
         cols = self.cropRange(pixels, axis=1)
         return pixels[rows[0]:rows[1], cols[0]:cols[1]]
