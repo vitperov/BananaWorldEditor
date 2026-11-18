@@ -6,18 +6,23 @@
 # a seamless conversion in memory and save it back over the texture
 # file. The texture file is edited, never the icon.
 #
-# Layout: texture list | fixed-size texture preview | seamless check.
-# The seamless check sits beside the preview and takes all remaining
-# window space, so enlarging the window enlarges the tiled picture.
+# Layout: texture list | preview column | seamless check. The preview
+# column holds the fixed-size texture preview and, under it, the
+# pipeline controls top-down in run order: "Pre-filters" (checkboxes,
+# the fixed run order is internal) then "Seamless algorithm". The
+# seamless check takes all remaining window space, so enlarging the
+# window enlarges the tiled picture.
 
 import os
 
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
-from PyQt5.QtWidgets import (QComboBox, QFileDialog, QHBoxLayout, QLabel,
-                             QListWidget, QListWidgetItem, QMessageBox,
-                             QPushButton, QSizePolicy, QVBoxLayout, QWidget)
+from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
+                             QHBoxLayout, QLabel, QListWidget,
+                             QListWidgetItem, QMessageBox, QPushButton,
+                             QSizePolicy, QVBoxLayout, QWidget)
 
+from modules.TextureEditor.PreFilters import FILTERS
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
 from modules.TextureEditor.TextureEditorModel import TextureEditorModel
 
@@ -110,7 +115,19 @@ class TextureEditorWindow(QWidget):
             self._seamlessBox.addItem(algorithm.name)
         self._seamlessBox.currentTextChanged.connect(self._applyAlgorithm)
 
+        self._filterBoxes = []
+        for prefilter in FILTERS:
+            box = QCheckBox(prefilter.name)
+            box.setToolTip(prefilter.__doc__.strip().split('\n')[0])
+            box.toggled.connect(
+                lambda on, name=prefilter.name: self._toggleFilter(name, on))
+            self._filterBoxes.append(box)
+
         self._fileLabel = QLabel("No texture loaded")
+        # A long path (browsed file far from the repo) must not widen the
+        # window; it is clipped and the full path is in the tooltip.
+        self._fileLabel.setSizePolicy(QSizePolicy.Ignored,
+                                      QSizePolicy.Preferred)
         self._canvas = QLabel()
         self._canvas.setFixedSize(CANVAS_SIZE, CANVAS_SIZE)
         self._canvas.setAlignment(Qt.AlignCenter)
@@ -118,8 +135,6 @@ class TextureEditorWindow(QWidget):
 
         topRow = QHBoxLayout()
         topRow.addWidget(self._browseButton)
-        topRow.addWidget(QLabel("Seamless:"))
-        topRow.addWidget(self._seamlessBox)
         topRow.addStretch(1)
         topRow.addWidget(self._saveButton)
 
@@ -128,6 +143,8 @@ class TextureEditorWindow(QWidget):
         previewColumn = QVBoxLayout()
         previewColumn.addWidget(QLabel("Texture:"))
         previewColumn.addWidget(self._canvas)
+        previewColumn.addWidget(self._filtersGroup())
+        previewColumn.addWidget(self._algorithmGroup())
         previewColumn.addStretch(1)
 
         checkColumn = QVBoxLayout()
@@ -151,6 +168,21 @@ class TextureEditorWindow(QWidget):
         self._textureList.setMaximumWidth(220)
         self.resize(1280, 720)
 
+    def _filtersGroup(self) -> QGroupBox:
+        group = QGroupBox("Pre-filters")
+        column = QVBoxLayout()
+        for box in self._filterBoxes:
+            column.addWidget(box)
+        group.setLayout(column)
+        return group
+
+    def _algorithmGroup(self) -> QGroupBox:
+        group = QGroupBox("Seamless algorithm")
+        column = QVBoxLayout()
+        column.addWidget(self._seamlessBox)
+        group.setLayout(column)
+        return group
+
     def _openCatalogTexture(self, name):
         if name:
             self._openFile(self._textures.getTextureFile(name))
@@ -173,9 +205,10 @@ class TextureEditorWindow(QWidget):
                                  "Cannot load image:\n%s" % path)
             return
         self._model.open(imageToGrid(image), path)
-        self._resetSeamlessBox()
+        self._resetControls()
         self._saveButton.setEnabled(True)
         self._fileLabel.setText(os.path.relpath(path))
+        self._fileLabel.setToolTip(os.path.abspath(path))
         self._refreshCanvases()
 
     def _applyAlgorithm(self, name):
@@ -194,13 +227,23 @@ class TextureEditorWindow(QWidget):
             return
         # The saved image is the new original.
         self._model.markSaved()
-        self._resetSeamlessBox()
+        self._resetControls()
         self._refreshCanvases()
 
-    def _resetSeamlessBox(self):
-        self._seamlessBox.blockSignals(True)
+    def _toggleFilter(self, name, enabled):
+        self._model.setFilterEnabled(name, enabled)
+        if self._model.isLoaded():
+            self._refreshCanvases()
+
+    def _resetControls(self):
+        """Mirror the model after open/save: no filters, Original."""
+        for widget in [self._seamlessBox] + self._filterBoxes:
+            widget.blockSignals(True)
         self._seamlessBox.setCurrentIndex(0)
-        self._seamlessBox.blockSignals(False)
+        for box in self._filterBoxes:
+            box.setChecked(False)
+        for widget in [self._seamlessBox] + self._filterBoxes:
+            widget.blockSignals(False)
 
     def _refreshCanvases(self):
         pixmap = QPixmap.fromImage(gridToImage(self._model.current))
