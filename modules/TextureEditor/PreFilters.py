@@ -353,8 +353,124 @@ class LightingFlatten:
         return surface * np.maximum(gaussianBlurReflect(residual, sigma), 1e-3)
 
 
+def dilate(mask: np.ndarray, radius: int) -> np.ndarray:
+    """Binary dilation by a square of the given radius (small masks)."""
+    out = mask.copy()
+    padded = np.pad(mask, radius)
+    height, width = mask.shape
+    for dy in range(-radius, radius + 1):
+        for dx in range(-radius, radius + 1):
+            out |= padded[radius + dy:radius + dy + height, radius + dx:radius + dx + width]
+    return out
+
+
+class HighlightSuppress:
+    """Tone down glare: flash reflections, wet shine, sun glints.
+
+    Glare in a photo is near-white: it clips at the top of the range,
+    above anything the surface itself shows (measured on the catalog:
+    bright mortar peaks around 230, glare sits at 245-255). So the core
+    of a spot is every pixel whose brightness is near clipping (ramp
+    CORE_FROM..CORE_TO), the mask is grown a little to take the soft
+    halo with it, and the spot is filled with the colour of the
+    non-glare pixels around it (normalised blur with the mask cut out,
+    so a spot does not brighten its own replacement).
+
+    Relative criteria (brighter than the surroundings) were tried and
+    rejected: a spot dominates its own local average, so its excess
+    scored *lower* than ordinary brick-mortar edges.
+
+    Bright surfaces are not glare: when more than MAX_FRACTION of the
+    picture is near-white (a white wall), nothing is changed. Stray
+    near-white pixels are not glare either; only clusters are treated.
+    """
+
+    name = 'Suppress highlights'
+    description = (
+        "Use when the photo has shiny near-white spots: flash "
+        "reflections, wet shine or sun glints. Tiled, they would repeat "
+        "as a grid of bright dots. Such spots are filled with the colour "
+        "of their surroundings; the rest is untouched. Does nothing on a "
+        "picture that is mostly white.")
+
+    CORE_FROM, CORE_TO = 240.0, 250.0    # brightness ramp of the glare core
+    MAX_FRACTION = 0.05                  # more near-white than this: a bright surface
+    MASS_SIGMA = 0.006                   # a core must be a cluster, not stray pixels
+    NEAR_RADIUS = 0.05                   # neighbourhood of a core, fraction of shorter side
+    SOFT_SIGMA = 0.012                   # softening before the halo test
+    FILL_SIGMA = 0.06                    # background colour radius, fraction of shorter side
+    HALO_FROM, HALO_TO = 15.0, 60.0      # softened brightness above background: halo ramp
+    WORK_SIZE = 256                      # masks and all blurs run on a copy this big
+
+    def apply(self, pixels: Image) -> Image:
+        image = pixels.astype(np.float32)
+        height, width = image.shape[:2]
+        luminance = image @ np.array([0.299, 0.587, 0.114], np.float32)
+        core = np.clip((luminance - self.CORE_FROM) / (self.CORE_TO - self.CORE_FROM), 0.0, 1.0)
+        if not core.any() or core.mean() > self.MAX_FRACTION:
+            return pixels
+        small = self._Small(height, width, self.WORK_SIZE)
+        shorter = min(small.height, small.width)
+        # Only clusters count as glare: stray near-white pixels are part
+        # of the surface (the brightest grains of mortar) and stay.
+        mass = small.blur(small.down(core), max(0.5, self.MASS_SIGMA * shorter))[..., 0]
+        clusters = mass > 0.35
+        if not clusters.any():
+            return pixels
+        # Neighbourhood of the clusters (dilated, soft edge). The
+        # background colour is estimated from everything outside it, so
+        # neither the core nor its halo brightens its own replacement.
+        near = dilate(clusters, max(2, int(round(self.NEAR_RADIUS * shorter))))
+        near = small.blur(near.astype(np.float64)[..., None], 1.0)
+        near = np.clip(small.up(near)[..., 0], 0.0, 1.0)
+        sigma = max(1.0, self.FILL_SIGMA * shorter)
+        outside = small.down(1.0 - near)
+        background = small.blur(small.down(image) * outside, sigma) / np.maximum(small.blur(outside, sigma), 1e-3)
+        background = small.up(background)
+        backgroundLuminance = background @ np.array([0.299, 0.587, 0.114], np.float32)
+        # Halo: inside the neighbourhood and still well above the
+        # background. Judged on a slightly softened brightness, which
+        # attenuates thin bright lines (mortar) but not a wide glow.
+        softened = small.blur(small.down(luminance), max(0.5, self.SOFT_SIGMA * shorter))
+        softened = small.up(softened)[..., 0]
+        halo = near * np.clip((softened - backgroundLuminance - self.HALO_FROM)
+                              / (self.HALO_TO - self.HALO_FROM), 0.0, 1.0)
+        weight = (near * np.maximum(core, halo))[..., None]
+        return toUint8(image * (1.0 - weight) + background * weight)
+
+    class _Small:
+        """Down/upscaling between full and work size (no-ops when the
+        picture is already small)."""
+
+        def __init__(self, height, width, workSize):
+            scale = min(1.0, workSize / max(height, width))
+            self.full = (height, width)
+            self.height = max(1, round(height * scale))
+            self.width = max(1, round(width * scale))
+            self.same = (self.height, self.width) == self.full
+
+        def down(self, array):
+            array = array if array.ndim == 3 else array[..., None]
+            if self.same:
+                return array.astype(np.float64)
+            return downscaleArea(array, self.height, self.width)
+
+        def up(self, array):
+            if self.same:
+                return array.astype(np.float32)
+            return upscaleBilinear(array.astype(np.float32), *self.full)
+
+        @staticmethod
+        def blur(array, sigma):
+            return gaussianBlurReflect(array, sigma)
+
+
 # Fixed execution order of the enabled filters (also the GUI order).
-FILTERS: List = [PeriodCrop(), LightingFlatten()]
+# Glare first: it is detected by absolute near-white brightness, which
+# lighting flattening would alter (a spot inflates the local lighting
+# estimate and gets darkened below the threshold), and a removed spot
+# no longer skews the lighting estimate. Then geometry, then lighting.
+FILTERS: List = [HighlightSuppress(), PeriodCrop(), LightingFlatten()]
 
 
 def filterByName(name: str):
