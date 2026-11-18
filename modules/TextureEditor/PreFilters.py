@@ -25,7 +25,36 @@ def gridToArray(grid: Grid) -> np.ndarray:
 
 def arrayToGrid(array: np.ndarray) -> Grid:
     array = np.clip(np.rint(array), 0, 255).astype(np.uint8)
-    return [[tuple(int(c) for c in pixel) for pixel in row] for row in array]
+    return [list(map(tuple, row)) for row in array.tolist()]
+
+
+# Lighting is smooth, so it is estimated on a copy whose longer side is
+# at most this many pixels and scaled back up: same result, a fraction
+# of the time on 1024+ textures.
+LIGHTING_WORK_SIZE = 256
+
+
+def downscaleArea(array: np.ndarray, height: int, width: int) -> np.ndarray:
+    """Average of the source pixels falling into each target pixel."""
+    rows = (np.arange(height) * array.shape[0]) // height
+    cols = (np.arange(width) * array.shape[1]) // width
+    sums = np.add.reduceat(np.add.reduceat(array, rows, axis=0), cols, axis=1)
+    rowCounts = np.diff(np.append(rows, array.shape[0]))
+    colCounts = np.diff(np.append(cols, array.shape[1]))
+    return sums / (rowCounts[:, None, None] * colCounts[None, :, None])
+
+
+def upscaleBilinear(array: np.ndarray, height: int, width: int) -> np.ndarray:
+    def axisWeights(source, target):
+        pos = np.clip((np.arange(target) + 0.5) * source / target - 0.5,
+                      0, source - 1)
+        low = np.floor(pos).astype(int)
+        high = np.minimum(low + 1, source - 1)
+        return low, high, pos - low
+    y0, y1, wy = axisWeights(array.shape[0], height)
+    x0, x1, wx = axisWeights(array.shape[1], width)
+    rows = array[y0] * (1 - wy)[:, None, None] + array[y1] * wy[:, None, None]
+    return rows[:, x0] * (1 - wx)[None, :, None] + rows[:, x1] * wx[None, :, None]
 
 
 def gaussianBlurReflect(array: np.ndarray, sigma: float) -> np.ndarray:
@@ -85,11 +114,26 @@ class LightingFlatten:
 
     def apply(self, grid: Grid) -> Grid:
         image = gridToArray(grid)
-        flat = image / np.maximum(quadraticSurface(image), self.EPSILON)
+        height, width = image.shape[:2]
+        scale = min(1.0, LIGHTING_WORK_SIZE / max(height, width))
+        small = image
+        if scale < 1.0:
+            small = downscaleArea(image, max(1, round(height * scale)),
+                                  max(1, round(width * scale)))
+        lighting = self._lighting(small)
+        if small is not image:
+            lighting = upscaleBilinear(lighting, height, width)
+        flat = image / lighting
+        gain = image.mean(axis=(0, 1)) / np.maximum(flat.mean(axis=(0, 1)), 1e-9)
+        return arrayToGrid(flat * gain)
+
+    def _lighting(self, image: np.ndarray) -> np.ndarray:
+        """Brightness map to divide out: quadratic fit times the heavy
+        blur of what the fit leaves."""
+        surface = np.maximum(quadraticSurface(image), self.EPSILON)
+        residual = image / surface
         sigma = self.SIGMA_FRACTION * min(image.shape[:2])
-        flat = flat / np.maximum(gaussianBlurReflect(flat, sigma), 1e-3)
-        scale = image.mean(axis=(0, 1)) / np.maximum(flat.mean(axis=(0, 1)), 1e-9)
-        return arrayToGrid(flat * scale)
+        return surface * np.maximum(gaussianBlurReflect(residual, sigma), 1e-3)
 
 
 # Fixed execution order of the enabled filters (also the GUI order).

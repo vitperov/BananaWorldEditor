@@ -17,9 +17,9 @@ import numpy as np
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO_ROOT)
 
-from modules.TextureEditor.PreFilters import (FILTERS, LightingFlatten,
-                                              applyFilters, arrayToGrid,
-                                              gridToArray)
+from modules.TextureEditor.PreFilters import (FILTERS, LIGHTING_WORK_SIZE,
+                                              LightingFlatten, applyFilters,
+                                              arrayToGrid, gridToArray)
 
 SIZE = 64
 
@@ -90,6 +90,21 @@ class LightingFlattenTest(unittest.TestCase):
         lit = checker() * vignette()
         out = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
         self.assertAlmostEqual(out.mean(), lit.mean(), delta=1.0)
+
+    def test_large_image_matches_full_resolution(self):
+        """The downscaled lighting estimate gives the same picture as
+        the exact full-resolution one."""
+        size = 4 * LIGHTING_WORK_SIZE // 2 + 10    # odd-sized, downscaled
+        y, x = np.mgrid[0:size, 0:size]
+        cell = size // 40
+        tex = np.where(((x // cell) + (y // cell)) % 2 == 0, 160.0, 100.0)
+        light = 0.55 + 0.45 * x / (size - 1)
+        lit = (tex * light)[..., None].repeat(3, axis=2)
+        fast = gridToArray(LightingFlatten().apply(arrayToGrid(lit)))
+        exact = LightingFlatten()._lighting(lit)
+        exact = lit / exact
+        exact *= lit.mean(axis=(0, 1)) / exact.mean(axis=(0, 1))
+        self.assertLess(np.abs(fast - exact).mean(), 1.5)
 
 
 if __name__ == '__main__':
