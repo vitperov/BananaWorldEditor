@@ -15,6 +15,7 @@
 
 import os
 
+import numpy as np
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QIcon, QImage, QPainter, QPixmap
 from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
@@ -22,7 +23,7 @@ from PyQt5.QtWidgets import (QCheckBox, QComboBox, QFileDialog, QGroupBox,
                              QListWidgetItem, QMessageBox, QPushButton,
                              QSizePolicy, QVBoxLayout, QWidget)
 
-from modules.TextureEditor.PreFilters import FILTERS
+from modules.TextureEditor.PreFilters import FILTERS, arrayToGrid
 from modules.TextureEditor.SeamlessAlgorithms import ALGORITHMS
 from modules.TextureEditor.TextureEditorModel import TextureEditorModel
 
@@ -31,25 +32,28 @@ CHECK_MIN_TILE = 128       # smallest tile in the seamless check grid
 CHECK_COLUMNS, CHECK_ROWS = 3, 2
 
 
+# Format_RGB32 pixels are 0xFFRRGGBB words: bytes B, G, R, 0xFF on the
+# little-endian machines the editor runs on.
+
 def imageToGrid(image: QImage):
     image = image.convertToFormat(QImage.Format_RGB32)
-    grid = []
-    for y in range(image.height()):
-        row = []
-        for x in range(image.width()):
-            rgb = image.pixel(x, y)
-            row.append(((rgb >> 16) & 0xFF, (rgb >> 8) & 0xFF, rgb & 0xFF))
-        grid.append(row)
-    return grid
+    width, height = image.width(), image.height()
+    bits = image.constBits()
+    bits.setsize(image.bytesPerLine() * height)
+    rows = np.frombuffer(bits, np.uint8).reshape(height, image.bytesPerLine())
+    bgra = rows[:, :width * 4].reshape(height, width, 4)
+    return arrayToGrid(bgra[..., 2::-1])
 
 
 def gridToImage(grid) -> QImage:
-    height, width = len(grid), len(grid[0])
-    image = QImage(width, height, QImage.Format_RGB32)
-    for y, row in enumerate(grid):
-        for x, (r, g, b) in enumerate(row):
-            image.setPixel(x, y, 0xFF000000 | (r << 16) | (g << 8) | b)
-    return image
+    rgb = np.asarray(grid, dtype=np.uint8).reshape(len(grid), len(grid[0]), 3)
+    height, width = rgb.shape[:2]
+    bgra = np.empty((height, width, 4), np.uint8)
+    bgra[..., :3] = rgb[..., ::-1]
+    bgra[..., 3] = 255
+    # copy(): the QImage must own its pixels, not borrow the array's.
+    return QImage(bgra.data, width, height, width * 4,
+                  QImage.Format_RGB32).copy()
 
 
 class SeamlessCheckCanvas(QWidget):
