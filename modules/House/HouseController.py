@@ -13,12 +13,15 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 
 from modules.commonModels.EditorHelper import EditorHelper
+from modules.Viewer3D.Viewer3DWindow import Viewer3DWindow
+from modules.Viewer3D.SceneBuilder import buildMapBoxes
 
 class HouseController:
     def __init__(self, view, houseModel):
         self._view = view
         self._houseModel = houseModel
         self._editorHelper = EditorHelper(self._houseModel)
+        self._viewer3DWindow = None
 
         self._provideModel()
         self._connectSignals()
@@ -39,6 +42,7 @@ class HouseController:
         self._view.actionsPanel.generateWallFrame.connect(self._generateWallFrame)
         self._view.actionsPanel.generateRoofFrame.connect(self._generateRoofFrame)
         self._view.actionsPanel.generateRoofFrameHalf.connect(self._generateRoofFrameHalf)
+        self._view.actionsPanel.view3D.connect(self._open3DView)
 
         self._houseModel.updatedEntireMap.connect(self._view.mapWidget.redrawAll)
         self._houseModel.updatedEntireMap.connect(self._syncFloorHeight)
@@ -74,3 +78,13 @@ class HouseController:
         selection = self._view.mapWidget.selectionRange
         self._editorHelper.generateRoofFrameHalf(selection)
         self._view.mapWidget.redrawAll()
+
+    def _open3DView(self):
+        # Non-modal window; reused across clicks, scene rebuilt on each
+        # click so it reflects the current map state.
+        if self._viewer3DWindow is None:
+            self._viewer3DWindow = Viewer3DWindow(self._view)
+        self._viewer3DWindow.setBoxes(buildMapBoxes(self._houseModel))
+        self._viewer3DWindow.show()
+        self._viewer3DWindow.raise_()
+        self._viewer3DWindow.activateWindow()

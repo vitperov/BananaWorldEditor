@@ -11,5 +11,22 @@
             "type": "texture",
             "name": "externalTexture"
         }
-    ]
+    ],
+    "geometry": {
+        "type": "primitives",
+        "parts": [
+            {
+                "shape": "box",
+                "origin": [0.0, 0.0, 0.0],
+                "size": [2.0, 0.1, 3.0],
+                "textureSlot": "externalTexture"
+            },
+            {
+                "shape": "box",
+                "origin": [0.0, 0.1, 0.0],
+                "size": [2.0, 0.1, 3.0],
+                "textureSlot": "internalTexture"
+            }
+        ]
+    }
 }
