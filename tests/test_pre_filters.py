@@ -61,6 +61,10 @@ class PreFilterInvariants(unittest.TestCase):
         for prefilter in FILTERS:
             self.assertEqual(prefilter.apply(grid), grid, prefilter.name)
 
+    def test_every_filter_is_described(self):
+        for prefilter in FILTERS:
+            self.assertGreater(len(prefilter.description), 40, prefilter.name)
+
     def test_no_filters_is_identity(self):
         grid = arrayToGrid(checker())
         self.assertIs(applyFilters(grid, set()), grid)

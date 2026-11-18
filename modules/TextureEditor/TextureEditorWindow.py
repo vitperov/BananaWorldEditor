@@ -118,7 +118,7 @@ class TextureEditorWindow(QWidget):
         self._filterBoxes = []
         for prefilter in FILTERS:
             box = QCheckBox(prefilter.name)
-            box.setToolTip(prefilter.__doc__.strip().split('\n')[0])
+            box.setToolTip(prefilter.description)
             box.toggled.connect(
                 lambda on, name=prefilter.name: self._toggleFilter(name, on))
             self._filterBoxes.append(box)
@@ -171,10 +171,26 @@ class TextureEditorWindow(QWidget):
     def _filtersGroup(self) -> QGroupBox:
         group = QGroupBox("Pre-filters")
         column = QVBoxLayout()
-        for box in self._filterBoxes:
+        for box, prefilter in zip(self._filterBoxes, FILTERS):
             column.addWidget(box)
+            column.addWidget(self._descriptionLabel(prefilter.description))
         group.setLayout(column)
         return group
+
+    def _descriptionLabel(self, text) -> QLabel:
+        """Short guide under an option, in smaller grey text, indented
+        to line up with the checkbox label."""
+        label = QLabel(text)
+        label.setWordWrap(True)
+        # Fixed width: a word-wrapped label of free width makes Qt
+        # underestimate its height and the column overlaps the preview.
+        label.setFixedWidth(CANVAS_SIZE)
+        label.setContentsMargins(20, 0, 0, 0)
+        font = label.font()
+        font.setPointSizeF(font.pointSizeF() * 0.9)
+        label.setFont(font)
+        return label
+
 
     def _algorithmGroup(self) -> QGroupBox:
         group = QGroupBox("Seamless algorithm")

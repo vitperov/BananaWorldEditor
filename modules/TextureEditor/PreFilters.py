@@ -7,6 +7,10 @@
 #
 # The user only toggles filters on or off. FILTERS is the fixed order
 # the enabled ones run in, so the order is never the user's concern.
+#
+# Every filter has a `name` (checkbox label) and a `description`: plain
+# words for a non-expert, saying which problem it fixes and what changes
+# to expect. The GUI only displays it.
 
 from typing import List
 
@@ -71,6 +75,11 @@ class LightingFlatten:
     real feature spans the whole image cannot be told from light."""
 
     name = 'Flatten lighting'
+    description = (
+        "Use when the photo is lighter on one side or darker in the "
+        "corners: tiled, it shows as a repeating light-dark pattern. "
+        "Keeps bricks, planks and cracks; may fade one huge feature "
+        "that fills half the picture.")
     SIGMA_FRACTION = 1.0 / 8.0
     EPSILON = 1.0
 
